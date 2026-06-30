@@ -1,0 +1,101 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nirs4all-providers"
+# Version is single-sourced from src/nirs4all_providers/__init__.py (__version__).
+dynamic = ["version"]
+description = "Dependency-light, soft-importing provider clients over the nirs4all ecosystem's optional data/pipeline/benchmark/paper repositories."
+authors = [
+    { name = "Gregory Beurier", email = "beurier@cirad.fr" },
+]
+maintainers = [
+    { name = "Gregory Beurier", email = "gregory.beurier@cirad.fr" },
+]
+readme = "README.md"
+license = { text = "CeCILL-2.1 OR AGPL-3.0-or-later" }
+keywords = ["nirs4all", "providers", "plugins", "datasets", "repository", "benchmarks", "papers"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+    "Typing :: Typed",
+]
+requires-python = ">=3.11"
+# The contract + registry layer is pure standard library (importlib, dataclasses, enum, typing).
+# Each backing provider is an OPTIONAL extra, soft-imported; an absent extra degrades to
+# health().available == False rather than an ImportError. The base install stays minimal.
+dependencies = []
+
+[project.optional-dependencies]
+# Backing repos. Each is soft-imported; install only what you consume.
+datasets = ["nirs4all-datasets"]
+repository = ["nirs4all-repository"]
+benchmarks = ["nirs4all-benchmarks"]
+papers = ["nirs4all-papers"]
+# Everything at once. NOTE: nirs4all-repository pins nirs4all >=0.10,<0.11 — the tightest in the
+# family — so an `[all]` install co-resolves the three providers' nirs4all pins to that window.
+# This package never imports nirs4all itself and must not pin it.
+all = [
+    "nirs4all-datasets",
+    "nirs4all-repository",
+    "nirs4all-benchmarks",
+    "nirs4all-papers",
+]
+dev = [
+    "pytest>=7.4.0",
+    "ruff>=0.1.0",
+    "mypy>=1.7.0",
+    "build>=1.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/GBeurier/nirs4all-providers"
+Repository = "https://github.com/GBeurier/nirs4all-providers"
+Issues = "https://github.com/GBeurier/nirs4all-providers/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["nirs4all_providers*"]
+
+[tool.setuptools.package-data]
+nirs4all_providers = ["py.typed"]
+
+[tool.setuptools.dynamic]
+version = { attr = "nirs4all_providers.__version__" }
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "C4", "SIM"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+"tests/*" = ["B", "SIM"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-q"
+
+[tool.mypy]
+python_version = "3.11"
+files = ["src/nirs4all_providers"]
+warn_return_any = true
+warn_unused_ignores = true
+ignore_missing_imports = true
+
+[tool.coverage.run]
+source = ["nirs4all_providers"]
+omit = ["*/tests/*"]
