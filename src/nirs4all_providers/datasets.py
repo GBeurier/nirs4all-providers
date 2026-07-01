@@ -2,7 +2,7 @@
 
 Wraps the real API verbatim: ``list`` / ``card`` / ``get`` plus the ``NirsDataset.to_nirs4all`` bridge.
 No assembly logic lives here — ``nirs4all-io`` remains the dataset-assembly owner. The only write this
-provider ever performs is into the local pooch cache, via the backing ``get()``.
+provider ever performs is into the local pooch cache, via the backing ``get()`` / ``retrieve()``.
 
 ``to_dataset_package`` and ``describe_dataset_package`` are soft, optional bridges to nirs4all-io's
 DatasetPackage API. They are transparent pass-throughs that never re-implement assembly; if nirs4all-io
@@ -55,6 +55,7 @@ class DatasetProvider(_BaseProvider):
                 "list_datasets",
                 "card",
                 "get_dataset",
+                "retrieve_dataset",
                 "to_spectro_dataset",
                 "to_dataset_package",
                 "describe_dataset_package",
@@ -78,14 +79,28 @@ class DatasetProvider(_BaseProvider):
 
     def card(self, dataset_id: str) -> dict[str, Any] | None:
         """Return a dataset's identity card, or ``None`` (delegates to ``nirs4all_datasets.card``)."""
+        dataset_id = self._require_identifier(dataset_id, name="dataset_id")
         result: dict[str, Any] | None = self._require().card(dataset_id, self._root)
         return result
 
     def get_dataset(self, dataset_id: str, **opts: Any) -> Any:
         """Resolve a dataset and return a ``NirsDataset`` (delegates to ``nirs4all_datasets.get``)."""
+        dataset_id = self._require_identifier(dataset_id, name="dataset_id")
         params: dict[str, Any] = {"root": self._root, "cache_dir": self._cache_dir}
         params.update(opts)
         return self._require().get(dataset_id, **params)
+
+    def retrieve_dataset(self, dataset_id: str, **opts: Any) -> dict[str, Any]:
+        """Retrieve dataset bytes into the local cache and return the backing status dict.
+
+        This delegates to ``nirs4all_datasets.retrieve`` with no publish/upload path and no assembly
+        logic; it is the explicit cache-fill sibling to :meth:`get_dataset`.
+        """
+        dataset_id = self._require_identifier(dataset_id, name="dataset_id")
+        params: dict[str, Any] = {"root": self._root, "cache_dir": self._cache_dir}
+        params.update(opts)
+        result: dict[str, Any] = self._require().retrieve(dataset_id, **params)
+        return result
 
     def to_spectro_dataset(self, dataset_id: str, **opts: Any) -> Any:
         """Return a nirs4all ``SpectroDataset`` via ``NirsDataset.to_nirs4all`` (needs the nirs4all extra)."""

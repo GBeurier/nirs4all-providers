@@ -103,6 +103,13 @@ def test_list_and_get_pipeline_filter(tmp_path: object) -> None:
         assert provider.get_pipeline("missing") is None
 
 
+def test_pipeline_lookup_rejects_blank_dag_hash(tmp_path: object) -> None:
+    with fake_modules(_fakes()):
+        provider = BenchmarkProvider(store_root=str(tmp_path))
+        with pytest.raises(ValueError, match="benchmarks\\.pipeline_dag_hash must be a non-empty string"):
+            provider.get_pipeline(" ")
+
+
 def test_leaderboard_results_and_planned(tmp_path: object) -> None:
     with fake_modules(_fakes()):
         provider = BenchmarkProvider(store_root=str(tmp_path))
@@ -110,6 +117,13 @@ def test_leaderboard_results_and_planned(tmp_path: object) -> None:
         assert provider.get_results("e1") == {"execution_hash": "e1"}
         assert provider.get_results("absent") is None
         assert provider.planned() == [{"plan_id": 1, "status": "planned"}]
+
+
+def test_result_lookup_rejects_blank_execution_hash(tmp_path: object) -> None:
+    with fake_modules(_fakes()):
+        provider = BenchmarkProvider(store_root=str(tmp_path))
+        with pytest.raises(ValueError, match="benchmarks\\.execution_hash must be a non-empty string"):
+            provider.get_results("")
 
 
 def test_unavailable_backing_degrades() -> None:

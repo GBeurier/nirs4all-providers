@@ -43,11 +43,13 @@ class PipelineProvider(_BaseProvider):
 
     def card(self, pipeline_id: str) -> dict[str, Any]:
         """Return a pipeline's validated descriptor (delegates to ``nirs4all_repository.card``)."""
+        pipeline_id = self._require_identifier(pipeline_id, name="pipeline_id")
         result: dict[str, Any] = self._require().card(pipeline_id, root=self._root)
         return result
 
     def get_pipeline(self, pipeline_id: str, **opts: Any) -> Any:
         """Resolve a pipeline and return a ``Pipeline`` handle (delegates to ``nirs4all_repository.get``)."""
+        pipeline_id = self._require_identifier(pipeline_id, name="pipeline_id")
         params: dict[str, Any] = {"root": self._root, "cache_dir": self._cache_dir, "verify": self._verify}
         params.update(opts)
         return self._require().get(pipeline_id, **params)
@@ -62,6 +64,7 @@ class PipelineProvider(_BaseProvider):
 
     def get_bundle(self, pipeline_id: str, *, with_artifacts: bool = False) -> Any:
         """Materialise the bundle dir and return its path (delegates to ``nirs4all_repository.fetch``)."""
+        pipeline_id = self._require_identifier(pipeline_id, name="pipeline_id")
         return self._require().fetch(
             pipeline_id,
             root=self._root,

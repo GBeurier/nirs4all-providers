@@ -83,6 +83,15 @@ def test_get_pipeline_defaults_to_verify_true() -> None:
     assert ("get", "p1", True) in record
 
 
+def test_pipeline_lookup_rejects_blank_pipeline_id_before_backing_call() -> None:
+    record: list[tuple[object, ...]] = []
+    with fake_modules(_fake(record)):
+        provider = PipelineProvider()
+        with pytest.raises(ValueError, match="repository\\.pipeline_id must be a non-empty string"):
+            provider.get_pipeline("")
+    assert record == []
+
+
 def test_get_bundle_forwards_with_artifacts() -> None:
     with fake_modules(_fake([])):
         bundle = PipelineProvider().get_bundle("p1", with_artifacts=True)
