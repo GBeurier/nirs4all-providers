@@ -11,7 +11,7 @@ from dataclasses import dataclass
 from importlib import import_module
 from types import ModuleType
 
-__all__ = ["ProviderUnavailable", "SoftImport", "soft_import"]
+__all__ = ["ProviderCapabilityUnavailable", "ProviderUnavailable", "SoftImport", "soft_import"]
 
 
 @dataclass(frozen=True)
@@ -59,4 +59,33 @@ class ProviderUnavailable(RuntimeError):
         )
         if cause:
             message = f"{message} (import error: {cause})"
+        super().__init__(message)
+
+
+class ProviderCapabilityUnavailable(RuntimeError):
+    """Raised when an optional provider capability cannot be served.
+
+    This is distinct from :class:`ProviderUnavailable`: the provider may import
+    cleanly while a specific optional bridge is unavailable or unsupported.
+    """
+
+    def __init__(
+        self,
+        provider_id: str,
+        *,
+        capability: str,
+        reason: str,
+        extra: str | None = None,
+        module: str | None = None,
+    ) -> None:
+        self.provider_id = provider_id
+        self.capability = capability
+        self.reason = reason
+        self.extra = extra
+        self.module = module
+        message = f"provider {provider_id!r} cannot serve capability {capability!r}: {reason}"
+        if extra:
+            message = f"{message} Install it with `pip install nirs4all-providers[{extra}]`."
+        if module:
+            message = f"{message} (module: {module})"
         super().__init__(message)

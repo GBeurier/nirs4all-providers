@@ -11,8 +11,8 @@ never execute ML or write back to the ecosystem.
 
 > Scope: **read slice.** Publish/upload and the benchmark runner stay deferred and gated (LOCK-RT /
 > DEC-PROV-001). `to_dataset_package` is present only as a *soft, transparent* bridge to nirs4all-io,
-> gated on LOCK-IO: it forwards to the io entrypoint verbatim and stays inert (raising a clear deferral)
-> until that public contract lands. See `IMP_L14` / `SW6_PROV_PLUGINS_spec`.
+> forwarding to the io entrypoint verbatim and returning a typed availability/refusal when the optional
+> io bridge is absent or too old. See `IMP_L14` / `SW6_PROV_PLUGINS_spec`.
 
 ## Install
 
@@ -22,6 +22,7 @@ pip install "nirs4all-providers[datasets]"     # + nirs4all-datasets
 pip install "nirs4all-providers[repository]"   # + nirs4all-repository
 pip install "nirs4all-providers[benchmarks]"   # + nirs4all-benchmarks
 pip install "nirs4all-providers[papers]"       # + nirs4all-papers
+pip install "nirs4all-providers[io]"           # + optional nirs4all-io package bridge
 pip install "nirs4all-providers[all]"          # all four backings
 ```
 
@@ -52,7 +53,7 @@ sd = datasets.to_spectro_dataset("some_id")  # -> nirs4all SpectroDataset (needs
 
 | Provider | `provider_id` | Backing | Read methods | Writes |
 |---|---|---|---|---|
-| `DatasetProvider` | `datasets` | `nirs4all-datasets` | `list_datasets` · `card` · `get_dataset` · `to_spectro_dataset` | local cache (via `get()`) |
+| `DatasetProvider` | `datasets` | `nirs4all-datasets` | `list_datasets` · `card` · `get_dataset` · `to_spectro_dataset` · `to_dataset_package` · `describe_dataset_package` | local cache (via `get()`) |
 | `PipelineProvider` | `repository` | `nirs4all-repository` | `list_pipelines` · `card` · `get_pipeline` · `get_bundle` · `verify` | none |
 | `BenchmarkProvider` | `benchmarks` | `nirs4all-benchmarks` | `list_pipelines` · `get_pipeline` · `leaderboard` · `get_results` · `planned` | none |
 | `PaperExportProvider` | `papers` | `nirs4all-papers` | `inspect_bundle` · `load_paper` · `build_methods_section` · `build_repro_page` | local output dir (marker-guarded) |
@@ -76,7 +77,7 @@ Every adapter also exposes the contract trio: `provider_id`, `version()`, `healt
 - The provider layer is **net-new glue only**; each backing repo keeps its own package + API and stays
   the single source of truth for its domain.
 - No adapter re-implements `nirs4all` / `nirs4all-io` / `nirs4all-methods`. `nirs4all-io` remains the
-  dataset-assembly owner; `to_dataset_package` is deferred behind LOCK-IO.
+  dataset-assembly owner; package methods delegate to nirs4all-io and do not assemble packages here.
 - No network calls originate in this layer, and no ecosystem write-back is performed.
 - `nirs4all-drafts` / `nirs4all-lab` are private and out of scope.
 
