@@ -103,6 +103,45 @@ def test_list_and_get_pipeline_filter(tmp_path: object) -> None:
         assert provider.get_pipeline("missing") is None
 
 
+def test_get_pipeline_uses_local_store_hash_lookup(tmp_path: object) -> None:
+    calls: list[tuple[str, tuple[object, ...]]] = []
+
+    class _DirectStore:
+        def __init__(self, root: str) -> None:
+            self.root = root
+
+        def query_one(self, sql: str, params: tuple[object, ...]) -> dict[str, object] | None:
+            calls.append((sql, params))
+            if params == ("h-direct",):
+                return {"pipeline_dag_hash": "h-direct", "human_label": "Direct", "n_run_conditions": 3}
+            return None
+
+    class _DirectQueries:
+        def __init__(self, store: _DirectStore) -> None:
+            self.store = store
+
+        def pipelines(self) -> list[dict[str, object]]:
+            raise AssertionError("get_pipeline should use the store hash lookup")
+
+    fakes = {
+        "nirs4all_benchmarks": {"__version__": "0.1.0"},
+        "nirs4all_benchmarks.store": {},
+        "nirs4all_benchmarks.store.arena_store": {"ArenaStore": _DirectStore},
+        "nirs4all_benchmarks.store.queries": {"Queries": _DirectQueries},
+    }
+    with fake_modules(fakes):
+        provider = BenchmarkProvider(store_root=str(tmp_path))
+        assert provider.get_pipeline("h-direct") == {
+            "pipeline_dag_hash": "h-direct",
+            "human_label": "Direct",
+            "n_run_conditions": 3,
+        }
+        assert provider.get_pipeline("missing") is None
+    assert len(calls) == 2
+    assert "FROM pipeline_dags pd" in calls[0][0]
+    assert calls[0][1] == ("h-direct",)
+
+
 def test_pipeline_lookup_rejects_blank_dag_hash(tmp_path: object) -> None:
     with fake_modules(_fakes()):
         provider = BenchmarkProvider(store_root=str(tmp_path))
