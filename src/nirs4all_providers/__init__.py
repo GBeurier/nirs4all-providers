@@ -7,14 +7,15 @@ sibling repo's real public API (``nirs4all-datasets`` / ``nirs4all-repository`` 
 discovered through the soft-import :func:`get_provider`. Providers are **not** controllers and never
 execute ML or write back to the ecosystem (see ``SW6_PROV_PLUGINS_spec`` / ``IMP_L14``).
 
-Read slice only: no ``to_dataset_package``, no publish/upload, no benchmark runner.
+Read slice only: no publish/upload, no benchmark runner. The optional DatasetPackage bridge delegates
+to nirs4all-io and never writes back.
 """
 from __future__ import annotations
 
-from ._softimport import ProviderUnavailable, SoftImport, soft_import
+from ._softimport import ProviderCapabilityUnavailable, ProviderUnavailable, SoftImport, soft_import
 from .base import Capabilities, Health, ProviderPlugin, WriteAccess
 from .benchmarks import BenchmarkProvider
-from .datasets import DatasetProvider
+from .datasets import DatasetPackageCapability, DatasetProvider
 from .papers import PaperExportProvider
 from .registry import available_providers, get_provider, provider_health, provider_ids
 from .repository import PipelineProvider
@@ -28,6 +29,8 @@ __all__ = [
     "Health",
     "PaperExportProvider",
     "PipelineProvider",
+    "DatasetPackageCapability",
+    "ProviderCapabilityUnavailable",
     "ProviderPlugin",
     "ProviderUnavailable",
     "SoftImport",

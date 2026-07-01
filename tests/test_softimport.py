@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import pytest
 
-from nirs4all_providers import ProviderUnavailable, SoftImport, soft_import
+from nirs4all_providers import ProviderCapabilityUnavailable, ProviderUnavailable, SoftImport, soft_import
 
 
 def test_soft_import_present_stdlib_module() -> None:
@@ -31,6 +31,25 @@ def test_provider_unavailable_message_names_the_extra() -> None:
     assert "nirs4all-providers[datasets]" in text
     assert "nirs4all_datasets" in text
     assert "boom" in text
+
+
+def test_provider_capability_unavailable_message_names_capability_and_extra() -> None:
+    err = ProviderCapabilityUnavailable(
+        "datasets",
+        capability="dataset_package",
+        reason="missing entrypoint",
+        extra="io",
+        module="nirs4all_io",
+    )
+    assert err.provider_id == "datasets"
+    assert err.capability == "dataset_package"
+    assert err.reason == "missing entrypoint"
+    assert err.extra == "io"
+    assert err.module == "nirs4all_io"
+    text = str(err)
+    assert "dataset_package" in text
+    assert "nirs4all-providers[io]" in text
+    assert "nirs4all_io" in text
 
 
 def test_provider_unavailable_is_runtime_error() -> None:

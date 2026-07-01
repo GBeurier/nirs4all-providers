@@ -70,12 +70,15 @@ def test_capabilities_serve_names_are_real_callable_methods() -> None:
             assert callable(member), f"{cls.__name__}.serves lists {name!r} but it is not a method"
 
 
-def test_dataset_provider_exposes_soft_package_bridge_outside_serves() -> None:
-    # to_dataset_package is a deliberate, documented soft bridge — intentionally *not* a stable read,
-    # so it stays out of serves while remaining a real callable on the adapter.
+def test_dataset_provider_exposes_soft_package_bridge_as_typed_read() -> None:
+    # The package bridge is optional because nirs4all-io is optional, but the adapter surface is stable
+    # and reports typed availability/refusal through dataset_package_capability().
     adapter = DatasetProvider()
     assert callable(adapter.to_dataset_package)
-    assert "to_dataset_package" not in adapter.capabilities().serves
+    assert callable(adapter.describe_dataset_package)
+    assert callable(adapter.dataset_package_capability)
+    assert "to_dataset_package" in adapter.capabilities().serves
+    assert "describe_dataset_package" in adapter.capabilities().serves
 
 
 # ── health matrix (hermetic) ─────────────────────────────────────────────────────────────────

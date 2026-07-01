@@ -4,23 +4,37 @@ Wraps the real API verbatim: ``list`` / ``card`` / ``get`` plus the ``NirsDatase
 No assembly logic lives here — ``nirs4all-io`` remains the dataset-assembly owner. The only write this
 provider ever performs is into the local pooch cache, via the backing ``get()``.
 
-``to_dataset_package`` is a *soft, optional* bridge to nirs4all-io's DatasetPackage builder, gated on
-LOCK-IO: it is a transparent pass-through that never re-implements assembly and stays inert until the
-W17 public entrypoint lands. It is deliberately **not** part of :meth:`capabilities.serves` (which lists
-only the stable catalogue reads).
+``to_dataset_package`` and ``describe_dataset_package`` are soft, optional bridges to nirs4all-io's
+DatasetPackage API. They are transparent pass-throughs that never re-implement assembly; if nirs4all-io
+is absent or too old, callers get a typed capability refusal instead of a fake package.
 """
 from __future__ import annotations
 
-from typing import Any, ClassVar
+from collections.abc import Callable
+from dataclasses import dataclass
+from types import ModuleType
+from typing import Any, ClassVar, cast
 
 from ._adapter import _BaseProvider
-from ._softimport import ProviderUnavailable, soft_import
+from ._softimport import ProviderCapabilityUnavailable, ProviderUnavailable, soft_import
 from .base import Capabilities, WriteAccess
 
-__all__ = ["DatasetProvider"]
+__all__ = ["DatasetPackageCapability", "DatasetProvider"]
 
 _IO_MODULE = "nirs4all_io"
-_IO_ENTRYPOINT = "to_dataset_package"
+_IO_PACKAGE_ENTRYPOINT = "to_dataset_package"
+_IO_DESCRIBE_ENTRYPOINT = "describe_dataset_package"
+
+
+@dataclass(frozen=True)
+class DatasetPackageCapability:
+    """Typed status for the optional nirs4all-io DatasetPackage bridge."""
+
+    available: bool
+    can_return: bool
+    can_describe: bool
+    io_version: str | None = None
+    refusal: ProviderCapabilityUnavailable | ProviderUnavailable | None = None
 
 
 class DatasetProvider(_BaseProvider):
@@ -37,7 +51,14 @@ class DatasetProvider(_BaseProvider):
 
     def capabilities(self) -> Capabilities:
         return Capabilities(
-            serves=("list_datasets", "card", "get_dataset", "to_spectro_dataset"),
+            serves=(
+                "list_datasets",
+                "card",
+                "get_dataset",
+                "to_spectro_dataset",
+                "to_dataset_package",
+                "describe_dataset_package",
+            ),
             executes=False,
             writes=WriteAccess.LOCAL_CACHE,
             portability="served datasets reference CAP-002/CAP-004 portability levels",
@@ -70,29 +91,66 @@ class DatasetProvider(_BaseProvider):
         """Return a nirs4all ``SpectroDataset`` via ``NirsDataset.to_nirs4all`` (needs the nirs4all extra)."""
         return self.get_dataset(dataset_id, **opts).to_nirs4all()
 
+    def dataset_package_capability(self) -> DatasetPackageCapability:
+        """Return typed availability for the optional nirs4all-io package bridge."""
+        io = soft_import(_IO_MODULE)
+        if io.module is None:
+            unavailable = ProviderUnavailable(self.provider_id, extra="io", module=_IO_MODULE, cause=io.error)
+            return DatasetPackageCapability(available=False, can_return=False, can_describe=False, refusal=unavailable)
+        io_version = str(getattr(io.module, "__version__", "unknown"))
+        missing = [
+            name
+            for name in (_IO_PACKAGE_ENTRYPOINT, _IO_DESCRIBE_ENTRYPOINT)
+            if not callable(getattr(io.module, name, None))
+        ]
+        if missing:
+            capability_refusal = ProviderCapabilityUnavailable(
+                self.provider_id,
+                capability="dataset_package",
+                reason=f"installed nirs4all-io (v{io_version}) does not expose {', '.join(missing)}",
+                extra="io",
+                module=_IO_MODULE,
+            )
+            return DatasetPackageCapability(
+                available=False,
+                can_return=False,
+                can_describe=False,
+                io_version=io_version,
+                refusal=capability_refusal,
+            )
+        return DatasetPackageCapability(available=True, can_return=True, can_describe=True, io_version=io_version)
+
+    def _io_entrypoint(self, name: str) -> Callable[..., Any]:
+        io = soft_import(_IO_MODULE)
+        if io.module is None:
+            raise ProviderUnavailable(self.provider_id, extra="io", module=_IO_MODULE, cause=io.error)
+        module: ModuleType = io.module
+        entrypoint = getattr(module, name, None)
+        if not callable(entrypoint):
+            io_version = getattr(module, "__version__", "unknown")
+            raise ProviderCapabilityUnavailable(
+                self.provider_id,
+                capability=name,
+                reason=f"installed nirs4all-io (v{io_version}) does not expose `{name}`",
+                extra="io",
+                module=_IO_MODULE,
+            )
+        return cast(Callable[..., Any], entrypoint)
+
     def to_dataset_package(self, *args: Any, **kwargs: Any) -> Any:
-        """Soft, optional bridge to nirs4all-io's ``DatasetPackage`` builder (deferred; LOCK-IO / W17).
+        """Soft, optional bridge to nirs4all-io's ``DatasetPackage`` builder.
 
         This is a **transparent pass-through**: it forwards its arguments verbatim to
         ``nirs4all_io.to_dataset_package`` and adds no assembly logic of its own — ``nirs4all-io`` stays
-        the single dataset-assembly owner, so nothing here re-runs RESOLVE/INFER/MATERIALIZE. The exact
-        argument contract is W17's to define; this adapter only *consumes* whatever public entrypoint
-        ``nirs4all-io`` publishes, and imposes no signature on it.
+        the single dataset-assembly owner, so this adapter never re-runs RESOLVE/INFER/MATERIALIZE.
 
         It degrades cleanly and never affects the rest of the provider:
 
         * ``nirs4all-io`` not installed → :class:`ProviderUnavailable` (install ``[io]``);
-        * installed but the W17 entrypoint has not landed yet → :class:`RuntimeError` naming the deferral.
+        * installed but too old for the package API → :class:`ProviderCapabilityUnavailable`.
         """
-        io = soft_import(_IO_MODULE)
-        if io.module is None:
-            raise ProviderUnavailable(self.provider_id, extra="io", module=_IO_MODULE, cause=io.error)
-        entrypoint = getattr(io.module, _IO_ENTRYPOINT, None)
-        if entrypoint is None:
-            io_version = getattr(io.module, "__version__", "unknown")
-            raise RuntimeError(
-                f"datasets.{_IO_ENTRYPOINT} is deferred: the installed nirs4all-io (v{io_version}) does "
-                f"not expose the public `{_IO_ENTRYPOINT}` entrypoint yet "
-                "(LOCK-IO / pending nirs4all-io DatasetPackage v2, W17)."
-            )
-        return entrypoint(*args, **kwargs)
+        return self._io_entrypoint(_IO_PACKAGE_ENTRYPOINT)(*args, **kwargs)
+
+    def describe_dataset_package(self, *args: Any, **kwargs: Any) -> Any:
+        """Soft, optional bridge to nirs4all-io's bytes-free package description."""
+        return self._io_entrypoint(_IO_DESCRIBE_ENTRYPOINT)(*args, **kwargs)
