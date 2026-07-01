@@ -160,6 +160,19 @@ from skipped sibling conformance. It also fails if any provider advertises execu
 serve / plan / export metadata; runtime execution and reproducibility proof stay with runtime-python,
 cluster, and the parity gates.
 
+For a local nirs4all workspace, use the sibling harness:
+
+```bash
+python -m nirs4all_providers.local_release_gate --workspace-root /path/to/nirs4all --json
+# or
+nirs4all-providers-local-release-gate --workspace-root /path/to/nirs4all
+```
+
+The harness verifies that `nirs4all-datasets`, `nirs4all-repository`, `nirs4all-benchmarks`, and
+`nirs4all-papers` each expose a real `src/<module>/__init__.py`, prepends those source paths, then runs
+the same strict release gate. It does not install dependencies or fake missing packages; missing sibling
+trees, non-package layouts, or import-time dependency blockers remain release-gate failures.
+
 ## License
 
 Dual-licensed `CeCILL-2.1 OR AGPL-3.0-or-later`, consistent with the nirs4all ecosystem policy. See
