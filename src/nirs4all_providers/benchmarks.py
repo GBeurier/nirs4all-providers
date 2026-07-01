@@ -10,8 +10,9 @@ adapter.
 from __future__ import annotations
 
 import os
+from collections.abc import Mapping
 from pathlib import Path
-from typing import Any, ClassVar
+from typing import Any, ClassVar, cast
 
 from ._adapter import _BaseProvider
 from .base import Capabilities, WriteAccess
@@ -20,6 +21,14 @@ __all__ = ["BenchmarkProvider"]
 
 _DEFAULT_STORE = "arena-store"
 _STORE_ENV = "NIRS4ALL_BENCHMARKS_STORE"
+_PIPELINE_BY_HASH_SQL = """
+    SELECT pd.pipeline_dag_hash, pd.human_label, pd.main_model, pd.n_nodes, pd.is_linear,
+           pd.nirs4all_identity_hash, pd.engine_graph_fingerprint,
+           (SELECT COUNT(DISTINCT rc.run_condition_hash) FROM run_conditions rc
+              WHERE rc.pipeline_dag_hash = pd.pipeline_dag_hash) AS n_run_conditions
+    FROM pipeline_dags pd
+    WHERE pd.pipeline_dag_hash = ?
+"""
 
 
 class BenchmarkProvider(_BaseProvider):
@@ -88,10 +97,27 @@ class BenchmarkProvider(_BaseProvider):
         return list(self._queries().pipelines())
 
     def get_pipeline(self, dag_hash: str) -> dict[str, Any] | None:
-        """Return the pipeline with ``pipeline_dag_hash == dag_hash``, or ``None`` (adapter-side filter)."""
+        """Return the pipeline with ``pipeline_dag_hash == dag_hash``, or ``None``.
+
+        Uses the local Arena store read API when available so a by-hash lookup does not have to scan the
+        entire pipeline catalogue. Older/faked ``Queries`` objects without ``store.query_one`` still fall
+        back to the public ``pipelines()`` list shape.
+        """
         dag_hash = self._require_identifier(dag_hash, name="pipeline_dag_hash")
+        queries = self._queries()
+        store = getattr(queries, "store", None)
+        query_one = getattr(store, "query_one", None)
+        if callable(query_one):
+            result = query_one(_PIPELINE_BY_HASH_SQL, (dag_hash,))
+            if result is None:
+                return None
+            if isinstance(result, dict):
+                return result
+            if isinstance(result, Mapping):
+                return dict(result)
+            return cast(dict[str, Any], result)
         match: dict[str, Any] | None = next(
-            (p for p in self._queries().pipelines() if p.get("pipeline_dag_hash") == dag_hash),
+            (p for p in queries.pipelines() if p.get("pipeline_dag_hash") == dag_hash),
             None,
         )
         return match

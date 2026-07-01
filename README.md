@@ -64,7 +64,8 @@ Every adapter also exposes the contract trio: `provider_id`, `version()`, `healt
 Lookup methods validate their identifiers before delegating. Use dataset ids with `DatasetProvider`
 methods, repository pipeline ids from `PipelineProvider.list_pipelines()` rows with repository
 `get_pipeline()`, and benchmark `pipeline_dag_hash` values from `BenchmarkProvider.list_pipelines()`
-with benchmark `get_pipeline()`.
+with benchmark `get_pipeline()`. Benchmark by-hash lookup uses the local Arena store read API when
+available, so it does not require listing the whole pipeline catalogue first.
 
 ## Contract
 

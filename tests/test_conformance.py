@@ -147,6 +147,7 @@ def test_conformance_benchmarks_real_api() -> None:
     from nirs4all_benchmarks.store.queries import Queries
 
     assert "root" in inspect.signature(ArenaStore.__init__).parameters
+    assert callable(getattr(ArenaStore, "query_one", None)), "ArenaStore.query_one missing"
     for name in (
         "overview",
         "datasets",
