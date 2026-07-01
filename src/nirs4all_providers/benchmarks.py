@@ -2,11 +2,12 @@
 
 Wraps the read-only ``Queries`` facade over a local ``ArenaStore``: ``overview`` / ``datasets`` /
 ``operators`` / ``pipelines`` / ``leaderboard`` / ``run_detail`` / ``residuals`` / ``planned`` plus an
-adapter-side ``get_pipeline(dag_hash)`` lookup. It also delegates ``queue_pipeline_test`` to the
-backing ``ingestion.upload`` state machine, which registers a bare pipeline and writes only local
-``planned_runs`` rows for target n4a dataset tokens. The Arena never runs compute; a runner fulfils
-planned rows later by ingesting real execution exports. No network call or ecosystem write-back is
-made by this adapter.
+adapter-side ``get_pipeline(dag_hash)`` lookup. The provider-level contract names the pipeline list
+lookup ``get_pipeline_list`` and keeps ``list_pipelines`` as a compatibility alias. It also delegates
+``queue_pipeline_test`` to the backing ``ingestion.upload`` state machine, which registers a bare
+pipeline and writes only local ``planned_runs`` rows for target n4a dataset tokens. The Arena never
+runs compute; a runner fulfils planned rows later by ingesting real execution exports. No network call
+or ecosystem write-back is made by this adapter.
 """
 from __future__ import annotations
 
@@ -49,6 +50,7 @@ class BenchmarkProvider(_BaseProvider):
                 "overview",
                 "datasets",
                 "operators",
+                "get_pipeline_list",
                 "list_pipelines",
                 "get_pipeline",
                 "leaderboard",
@@ -112,9 +114,13 @@ class BenchmarkProvider(_BaseProvider):
         """List operator specs and their pipeline reach (delegates to ``Queries.operators``)."""
         return list(self._queries().operators())
 
-    def list_pipelines(self) -> list[dict[str, Any]]:
+    def get_pipeline_list(self) -> list[dict[str, Any]]:
         """List canonical pipeline DAGs in the store (delegates to ``Queries.pipelines``)."""
         return list(self._queries().pipelines())
+
+    def list_pipelines(self) -> list[dict[str, Any]]:
+        """Compatibility alias for :meth:`get_pipeline_list`."""
+        return self.get_pipeline_list()
 
     def get_pipeline(self, dag_hash: str) -> dict[str, Any] | None:
         """Return the pipeline with ``pipeline_dag_hash == dag_hash``, or ``None``.

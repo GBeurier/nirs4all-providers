@@ -53,7 +53,15 @@ def test_version_and_health_when_available() -> None:
 def test_capabilities() -> None:
     with fake_modules(_fake([])):
         caps = PipelineProvider().capabilities()
-    assert caps.serves == ("list_pipelines", "card", "get_pipeline", "recipe", "get_bundle", "verify")
+    assert caps.serves == (
+        "get_pipeline_list",
+        "list_pipelines",
+        "card",
+        "get_pipeline",
+        "recipe",
+        "get_bundle",
+        "verify",
+    )
     assert caps.writes is WriteAccess.NONE
 
 
@@ -66,19 +74,23 @@ def test_recipe_resolves_then_returns_canonical_config() -> None:
     assert ("recipe", "p1") in record
 
 
-def test_list_and_card_forward_filters() -> None:
+def test_get_pipeline_list_and_card_forward_filters() -> None:
     with fake_modules(_fake([])):
         provider = PipelineProvider(root="/repo")
-        assert provider.list_pipelines(framework="nirs4all") == [
+        assert provider.get_pipeline_list(framework="nirs4all") == [
             {"root": "/repo", "filters": {"framework": "nirs4all"}}
         ]
+        assert provider.list_pipelines(framework="dag-ml") == [{"root": "/repo", "filters": {"framework": "dag-ml"}}]
         assert provider.card("p1") == {"name": "p1", "root": "/repo"}
 
 
-def test_get_pipeline_defaults_to_verify_true() -> None:
+def test_repository_pipeline_contract_serves_list_and_payload_by_id() -> None:
     record: list[tuple[object, ...]] = []
     with fake_modules(_fake(record)):
-        pipe = PipelineProvider().get_pipeline("p1")
+        provider = PipelineProvider(root="/repo", cache_dir="/cache")
+        rows = provider.get_pipeline_list(kind="recipe")
+        pipe = provider.get_pipeline("p1")
+    assert rows == [{"root": "/repo", "filters": {"kind": "recipe"}}]
     assert pipe.name == "p1"
     assert ("get", "p1", True) in record
 

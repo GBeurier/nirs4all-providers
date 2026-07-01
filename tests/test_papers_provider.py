@@ -47,6 +47,15 @@ def test_version_health_and_capabilities() -> None:
     )
     assert caps.executes is False
     assert caps.writes is WriteAccess.LOCAL_OUTPUT
+    assert "export plugin" in (caps.portability or "")
+
+
+def test_papers_provider_is_not_write_side_repository() -> None:
+    provider = PaperExportProvider()
+    caps = provider.capabilities()
+    assert "publish" not in caps.serves
+    assert "upload" not in caps.serves
+    assert caps.writes is WriteAccess.LOCAL_OUTPUT
 
 
 def test_inspect_and_load_and_methods() -> None:

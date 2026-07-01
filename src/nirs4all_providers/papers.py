@@ -1,12 +1,13 @@
-"""PaperExportProvider — read/build client over :mod:`nirs4all_papers` (PROV-004).
+"""PaperExportProvider — potential export-plugin client over :mod:`nirs4all_papers` (PROV-004).
 
-Wraps the real API verbatim: ``read_bundle`` (stdlib-only bundle inspection), ``load_paper`` /
+Wraps the real papers API verbatim: ``read_bundle`` (stdlib-only bundle inspection), ``load_paper`` /
 ``load_catalog``, ``build_bibliography`` (methods section), the ``citation_cff`` / ``paper_bibtex``
-deposit-sidecar *string* builders, and ``build_site`` (the reproduction page). The in-browser replay
-the page ships is an *approximate* reference engine (CAP-004), not numerically portable — this provider
-never executes it. Every method here is a pure read that returns a value **except** ``build_repro_page``:
-the only write is that explicit, marker-guarded build into a caller-chosen output directory; there is no
-network or ecosystem write.
+deposit-sidecar *string* builders, and ``build_site`` (the reproduction page). This adapter is **not** a
+write-side repository; at most it is a local export plugin over methods/provenance/UI helpers. The
+in-browser replay the page ships is an *approximate* reference engine (CAP-004), not numerically
+portable — this provider never executes it. Every method here is a pure read that returns a value
+**except** ``build_repro_page``: the only write is that explicit, marker-guarded build into a
+caller-chosen output directory; there is no network or ecosystem write.
 """
 from __future__ import annotations
 
@@ -38,7 +39,7 @@ class PaperExportProvider(_BaseProvider):
             ),
             executes=False,
             writes=WriteAccess.LOCAL_OUTPUT,
-            portability="in-browser replay is approximate (CAP-004), not numerically portable",
+            portability="potential export plugin; in-browser replay is approximate (CAP-004)",
         )
 
     def list_papers(self, root: str) -> Any:

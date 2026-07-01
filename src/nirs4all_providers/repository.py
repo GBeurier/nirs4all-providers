@@ -1,10 +1,12 @@
 """PipelineProvider — read client over :mod:`nirs4all_repository` (PROV-002).
 
-Wraps the real API verbatim: ``list`` / ``card`` / ``get`` / ``fetch`` plus ``Pipeline.recipe`` and
-``Pipeline.verify``. A resolved pipeline is *served config*, not a runnable object — the consumer runs
-it elsewhere via ``nirs4all.run(pipeline.to_nirs4all(), ...)``; ``recipe`` returns that same config in
-its canonical-JSON form for inspection without bridging to a framework. This client has **no**
-ecosystem write path: authoring and publishing stay in the repository repo's own CLI.
+Wraps the real read API verbatim: ``list`` / ``card`` / ``get`` / ``fetch`` plus ``Pipeline.recipe``
+and ``Pipeline.verify``. The provider-level contract names the list lookup ``get_pipeline_list`` and
+keeps ``list_pipelines`` as a compatibility alias. A resolved pipeline is *served config*, not a
+runnable object — the consumer runs it elsewhere via ``nirs4all.run(pipeline.to_nirs4all(), ...)``;
+``recipe`` returns that same config in its canonical-JSON form for inspection without bridging to a
+framework. This client has **no** ecosystem write path: authoring and publishing stay in the repository
+repo's own CLI.
 """
 from __future__ import annotations
 
@@ -31,15 +33,27 @@ class PipelineProvider(_BaseProvider):
 
     def capabilities(self) -> Capabilities:
         return Capabilities(
-            serves=("list_pipelines", "card", "get_pipeline", "recipe", "get_bundle", "verify"),
+            serves=(
+                "get_pipeline_list",
+                "list_pipelines",
+                "card",
+                "get_pipeline",
+                "recipe",
+                "get_bundle",
+                "verify",
+            ),
             executes=False,
             writes=WriteAccess.NONE,
             portability="served pipeline recipes reference CAP-002/CAP-004 portability levels",
         )
 
-    def list_pipelines(self, **filters: Any) -> list[dict[str, Any]]:
+    def get_pipeline_list(self, **filters: Any) -> list[dict[str, Any]]:
         """List catalogue pipelines (delegates to ``nirs4all_repository.list``)."""
         return list(self._require().list(root=self._root, **filters))
+
+    def list_pipelines(self, **filters: Any) -> list[dict[str, Any]]:
+        """Compatibility alias for :meth:`get_pipeline_list`."""
+        return self.get_pipeline_list(**filters)
 
     def card(self, pipeline_id: str) -> dict[str, Any]:
         """Return a pipeline's validated descriptor (delegates to ``nirs4all_repository.card``)."""

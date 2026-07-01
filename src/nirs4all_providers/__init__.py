@@ -1,11 +1,12 @@
 """nirs4all-providers — a dependency-light, soft-importing client layer over the ecosystem's optional
-data / pipeline / benchmark / paper repositories.
+data / pipeline / benchmark repositories, plus a papers export-plugin facade.
 
 The package owns *no* NIRS, ML, IO, or parsing logic. Each adapter is a thin, uniform client over one
 sibling repo's real public API (``nirs4all-datasets`` / ``nirs4all-repository`` /
 ``nirs4all-benchmarks`` / ``nirs4all-papers``), exposed behind the :class:`ProviderPlugin` contract and
 discovered through the soft-import :func:`get_provider`. Providers are **not** controllers and never
-execute ML or write back to the ecosystem (see ``SW6_PROV_PLUGINS_spec`` / ``IMP_L14``).
+execute ML or write back to the ecosystem; papers is a local export-plugin surface, not a write-side
+repository (see ``SW6_PROV_PLUGINS_spec`` / ``IMP_L14``).
 
 Read slice only: no publish/upload, no benchmark runner. The optional DatasetPackage bridge delegates
 to nirs4all-io and never writes back.

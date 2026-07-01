@@ -68,6 +68,7 @@ def test_version_health_and_capabilities(tmp_path: object) -> None:
         "overview",
         "datasets",
         "operators",
+        "get_pipeline_list",
         "list_pipelines",
         "get_pipeline",
         "leaderboard",
@@ -96,10 +97,11 @@ def test_residuals_filters_by_partition_and_handles_absent(tmp_path: object) -> 
         assert provider.residuals("absent") == []
 
 
-def test_list_and_get_pipeline_filter(tmp_path: object) -> None:
+def test_get_pipeline_list_and_get_pipeline_filter(tmp_path: object) -> None:
     with fake_modules(_fakes()):
         provider = BenchmarkProvider(store_root=str(tmp_path))
-        assert len(provider.list_pipelines()) == 2
+        assert len(provider.get_pipeline_list()) == 2
+        assert provider.list_pipelines() == provider.get_pipeline_list()
         assert provider.get_pipeline("h2") == {"pipeline_dag_hash": "h2", "human_label": "B"}
         assert provider.get_pipeline("missing") is None
 
@@ -215,6 +217,66 @@ def test_queue_pipeline_test_delegates_to_local_upload_and_closes_store(tmp_path
     }
     assert calls == [
         ("upload", str(tmp_path), payload, "W80-local", ["corn-public"], True, "pipeline.yaml"),
+        ("close", str(tmp_path)),
+    ]
+
+
+def test_benchmark_local_planning_contract_targets_datasets_without_execution(tmp_path: object) -> None:
+    calls: list[tuple[object, ...]] = []
+
+    class _PlanningStore:
+        def __init__(self, root: str) -> None:
+            self.root = root
+
+        def close(self) -> None:
+            calls.append(("close", self.root))
+
+    def _planning_upload(
+        store: _PlanningStore,
+        payload: object,
+        *,
+        collection_id: str,
+        target_datasets: list[str],
+        as_release: bool,
+        filename: str | None,
+    ) -> dict[str, object]:
+        calls.append(("plan", store.root, payload, collection_id, tuple(target_datasets), as_release, filename))
+        return {
+            "kind": "pipeline",
+            "status": "registered",
+            "pipeline_dag_hash": "pdag_local",
+            "datasets": [
+                {"token": token, "status": "planned", "plan_id": f"plan-{index}"}
+                for index, token in enumerate(target_datasets, start=1)
+            ],
+        }
+
+    fakes = {
+        "nirs4all_benchmarks": {"__version__": "0.1.0"},
+        "nirs4all_benchmarks.ingestion": {"upload": _planning_upload},
+        "nirs4all_benchmarks.store": {},
+        "nirs4all_benchmarks.store.arena_store": {"ArenaStore": _PlanningStore},
+        "nirs4all_benchmarks.store.queries": {"Queries": _FakeQueries},
+    }
+    payload = {"steps": [{"op": "SNV"}]}
+    with fake_modules(fakes):
+        out = BenchmarkProvider(store_root=str(tmp_path)).queue_pipeline_test(
+            payload,
+            target_datasets=["corn-public", "soy-public"],
+            collection_id="local-plans",
+        )
+
+    assert out == {
+        "kind": "pipeline",
+        "status": "registered",
+        "pipeline_dag_hash": "pdag_local",
+        "datasets": [
+            {"token": "corn-public", "status": "planned", "plan_id": "plan-1"},
+            {"token": "soy-public", "status": "planned", "plan_id": "plan-2"},
+        ],
+    }
+    assert calls == [
+        ("plan", str(tmp_path), payload, "local-plans", ("corn-public", "soy-public"), False, None),
         ("close", str(tmp_path)),
     ]
 
