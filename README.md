@@ -103,6 +103,21 @@ mypy src           # types
 pytest -q          # tests (hermetic: fakes, no network, no real backing required)
 ```
 
+## Release Gate
+
+```bash
+nirs4all-providers-release-gate
+# or
+python -m nirs4all_providers.release_gate --json
+```
+
+This gate is intentionally stricter than the hermetic unit suite. It fails when a registered backing
+extra is absent and reports the exact install hint, so a release environment cannot get a false green
+from skipped sibling conformance. It also fails if any provider advertises execution through
+`Capabilities.executes` or an execution-like served method. The only allowed boundary is
+serve / plan / export metadata; runtime execution and reproducibility proof stay with runtime-python,
+cluster, and the parity gates.
+
 ## License
 
 Dual-licensed `CeCILL-2.1 OR AGPL-3.0-or-later`, consistent with the nirs4all ecosystem policy. See

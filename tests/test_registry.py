@@ -5,9 +5,11 @@ import pytest
 
 from conftest import fake_modules, hidden_modules
 from nirs4all_providers import (
+    Capabilities,
     ProviderUnavailable,
     available_providers,
     get_provider,
+    provider_capabilities,
     provider_health,
     provider_ids,
 )
@@ -32,6 +34,9 @@ def test_get_provider_unknown_id_raises_value_error() -> None:
 def test_all_absent_degrades_gracefully() -> None:
     with hidden_modules(*_ALL_BACKINGS):
         assert available_providers() == []
+        caps = provider_capabilities("repository")
+        assert isinstance(caps, Capabilities)
+        assert caps.executes is False
         with pytest.raises(ProviderUnavailable) as excinfo:
             get_provider("datasets")
         assert "nirs4all-providers[datasets]" in str(excinfo.value)

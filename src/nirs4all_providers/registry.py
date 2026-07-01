@@ -14,13 +14,13 @@ from dataclasses import dataclass
 from typing import Any
 
 from ._softimport import ProviderUnavailable, soft_import
-from .base import Health, ProviderPlugin
+from .base import Capabilities, Health, ProviderPlugin
 from .benchmarks import BenchmarkProvider
 from .datasets import DatasetProvider
 from .papers import PaperExportProvider
 from .repository import PipelineProvider
 
-__all__ = ["available_providers", "get_provider", "provider_health", "provider_ids"]
+__all__ = ["available_providers", "get_provider", "provider_capabilities", "provider_health", "provider_ids"]
 
 
 @dataclass(frozen=True)
@@ -85,3 +85,12 @@ def get_provider(provider_id: str, **config: Any) -> ProviderPlugin:
 def provider_health(provider_id: str, **config: Any) -> Health:
     """Return the :class:`Health` of ``provider_id`` without raising on an absent extra."""
     return _spec(provider_id).factory(**config).health()
+
+
+def provider_capabilities(provider_id: str, **config: Any) -> Capabilities:
+    """Return the provider-level capabilities without requiring the backing extra.
+
+    Capability claims are adapter metadata. They must stay inspectable in a base install so release
+    gates can detect over-claims even when optional sibling packages are absent.
+    """
+    return _spec(provider_id).factory(**config).capabilities()

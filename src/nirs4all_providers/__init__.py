@@ -18,7 +18,7 @@ from .base import Capabilities, Health, ProviderPlugin, WriteAccess
 from .benchmarks import BenchmarkProvider
 from .datasets import DatasetPackageCapability, DatasetProvider
 from .papers import PaperExportProvider
-from .registry import available_providers, get_provider, provider_health, provider_ids
+from .registry import available_providers, get_provider, provider_capabilities, provider_health, provider_ids
 from .repository import PipelineProvider
 
 __version__ = "0.2.0.dev0"
@@ -39,6 +39,7 @@ __all__ = [
     "__version__",
     "available_providers",
     "get_provider",
+    "provider_capabilities",
     "provider_health",
     "provider_ids",
     "soft_import",
