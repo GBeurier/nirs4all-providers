@@ -9,7 +9,9 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
+import tomllib
 from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -19,6 +21,7 @@ from . import release_gate
 
 __all__ = [
     "LocalReleaseGateReport",
+    "LocalDependencyPathRow",
     "LocalSiblingDiagnostic",
     "LocalSiblingRow",
     "build_local_report",
@@ -27,6 +30,11 @@ __all__ = [
 ]
 
 _WORKSPACE_ROOT_ENV = "NIRS4ALL_WORKSPACE_ROOT"
+_DEPENDENCY_PATHS_ENV = "NIRS4ALL_PROVIDERS_LOCAL_DEPENDENCY_PATHS"
+_MISSING_MODULE_RE = re.compile(r"No module named ['\"](?P<module>[^'\"]+)['\"]")
+_IMPORT_TO_DISTRIBUTION = {
+    "yaml": "pyyaml",
+}
 
 
 @dataclass(frozen=True)
@@ -83,12 +91,29 @@ class LocalSiblingRow:
 
 
 @dataclass(frozen=True)
+class LocalDependencyPathRow:
+    """One explicit dependency path added for local-gate imports."""
+
+    input_path: str
+    path: str
+    kind: str
+
+    def as_dict(self) -> dict[str, str]:
+        return {
+            "input_path": self.input_path,
+            "path": self.path,
+            "kind": self.kind,
+        }
+
+
+@dataclass(frozen=True)
 class LocalReleaseGateReport:
     """Combined local-sibling preflight and strict release-gate report."""
 
     ok: bool
     workspace_root: str | None
     rows: tuple[LocalSiblingRow, ...]
+    dependency_paths: tuple[LocalDependencyPathRow, ...]
     diagnostics: tuple[LocalSiblingDiagnostic, ...]
     release_report: release_gate.ProviderReleaseGateReport | None
 
@@ -100,6 +125,7 @@ class LocalReleaseGateReport:
             "boundary": "providers-local-sibling-release-gate",
             "workspace_root": self.workspace_root,
             "local_siblings": [row.as_dict() for row in self.rows],
+            "dependency_paths": [row.as_dict() for row in self.dependency_paths],
             "local_diagnostics": [diagnostic.as_dict() for diagnostic in self.diagnostics],
             "release_gate": release_payload,
             "diagnostics": [diagnostic.as_dict() for diagnostic in self.diagnostics] + release_diagnostics,
@@ -130,6 +156,82 @@ def _workspace_not_found() -> LocalSiblingDiagnostic:
         message=f"could not find a workspace root containing any provider sibling repos: {repos}.",
         mitigation=f"Run from the nirs4all workspace or set `{_WORKSPACE_ROOT_ENV}` / pass `--workspace-root`.",
     )
+
+
+def _iter_dependency_path_inputs(explicit_paths: Sequence[str | Path] | None) -> tuple[str, ...]:
+    paths = [str(path) for path in explicit_paths or () if str(path)]
+    env_paths = os.environ.get(_DEPENDENCY_PATHS_ENV)
+    if env_paths:
+        paths.extend(path for path in env_paths.split(os.pathsep) if path)
+    return tuple(paths)
+
+
+def _venv_site_packages(venv_root: Path) -> tuple[Path, ...]:
+    candidates = [path for path in sorted((venv_root / "lib").glob("python*/site-packages")) if path.is_dir()]
+    windows_site = venv_root / "Lib" / "site-packages"
+    if windows_site.is_dir():
+        candidates.append(windows_site)
+    return tuple(candidates)
+
+
+def _resolve_dependency_paths(
+    explicit_paths: Sequence[str | Path] | None,
+) -> tuple[tuple[LocalDependencyPathRow, ...], tuple[LocalSiblingDiagnostic, ...]]:
+    rows: list[LocalDependencyPathRow] = []
+    diagnostics: list[LocalSiblingDiagnostic] = []
+
+    for raw_path in _iter_dependency_path_inputs(explicit_paths):
+        path = Path(raw_path).expanduser().resolve()
+        if not path.exists():
+            diagnostics.append(
+                LocalSiblingDiagnostic(
+                    provider_id="all",
+                    code="missing_dependency_path",
+                    message=f"explicit dependency path does not exist: {path}.",
+                    mitigation=(
+                        "Create the venv/path first or remove it from --dependency-path / "
+                        f"`{_DEPENDENCY_PATHS_ENV}`."
+                    ),
+                )
+            )
+            continue
+        if not path.is_dir():
+            diagnostics.append(
+                LocalSiblingDiagnostic(
+                    provider_id="all",
+                    code="invalid_dependency_path",
+                    message=f"explicit dependency path is not a directory: {path}.",
+                    mitigation="Pass a venv root, a site-packages directory, or another importable Python path.",
+                )
+            )
+            continue
+
+        if (path / "pyvenv.cfg").is_file():
+            site_packages = _venv_site_packages(path)
+            if not site_packages:
+                diagnostics.append(
+                    LocalSiblingDiagnostic(
+                        provider_id="all",
+                        code="invalid_dependency_venv",
+                        message=f"explicit dependency venv has no site-packages directory: {path}.",
+                        mitigation="Pass a populated virtualenv root or its site-packages directory.",
+                    )
+                )
+                continue
+            rows.extend(
+                LocalDependencyPathRow(input_path=raw_path, path=str(site_package), kind="venv-site-packages")
+                for site_package in site_packages
+            )
+        else:
+            rows.append(LocalDependencyPathRow(input_path=raw_path, path=str(path), kind="python-path"))
+
+    return tuple(rows), tuple(diagnostics)
+
+
+def _prepend_dependency_paths(rows: Sequence[LocalDependencyPathRow]) -> None:
+    for row in reversed(rows):
+        if row.path not in sys.path:
+            sys.path.insert(0, row.path)
 
 
 def _inspect_siblings(workspace_root: Path) -> tuple[tuple[LocalSiblingRow, ...], tuple[LocalSiblingDiagnostic, ...]]:
@@ -202,7 +304,92 @@ def _forget_backing_modules() -> None:
             sys.modules.pop(loaded_name, None)
 
 
-def build_local_report(*, workspace_root: str | Path | None = None) -> LocalReleaseGateReport:
+def _extract_missing_module(detail: str | None) -> str | None:
+    if not detail:
+        return None
+    match = _MISSING_MODULE_RE.search(detail)
+    if match is None:
+        return None
+    return match.group("module")
+
+
+def _distribution_name(requirement: str) -> str:
+    head = requirement.strip().split(";", 1)[0].strip()
+    return re.split(r"\s|\[|<|>|=|!|~", head, maxsplit=1)[0]
+
+
+def _normalize_requirement_name(name: str) -> str:
+    return re.sub(r"[-_.]+", "-", name).lower()
+
+
+def _dependency_requirement(repo_path: Path, missing_module: str) -> str | None:
+    pyproject_path = repo_path / "pyproject.toml"
+    if not pyproject_path.is_file():
+        return None
+
+    try:
+        payload = tomllib.loads(pyproject_path.read_text(encoding="utf-8"))
+    except (OSError, tomllib.TOMLDecodeError):
+        return None
+
+    project = payload.get("project", {})
+    if not isinstance(project, dict):
+        return None
+    dependencies = project.get("dependencies", [])
+    if not isinstance(dependencies, list):
+        return None
+
+    wanted = _normalize_requirement_name(_IMPORT_TO_DISTRIBUTION.get(missing_module, missing_module))
+    for dependency in dependencies:
+        if not isinstance(dependency, str):
+            continue
+        if _normalize_requirement_name(_distribution_name(dependency)) == wanted:
+            return dependency
+    return None
+
+
+def _dependency_diagnostics(
+    rows: Sequence[LocalSiblingRow],
+    strict_report: release_gate.ProviderReleaseGateReport,
+) -> tuple[LocalSiblingDiagnostic, ...]:
+    sibling_by_provider = {sibling.provider_id: sibling for sibling in _SIBLINGS}
+    row_by_provider = {row.provider_id: row for row in rows}
+    diagnostics: list[LocalSiblingDiagnostic] = []
+
+    for gate_row in strict_report.rows:
+        if gate_row.health.available:
+            continue
+        sibling = sibling_by_provider.get(gate_row.provider_id)
+        row = row_by_provider.get(gate_row.provider_id)
+        missing_module = _extract_missing_module(gate_row.health.detail)
+        if sibling is None or row is None or missing_module is None or missing_module == sibling.module_name:
+            continue
+
+        requirement = _dependency_requirement(Path(row.repo_path), missing_module)
+        requirement_detail = f" Required distribution: {requirement!r}." if requirement else ""
+        diagnostics.append(
+            LocalSiblingDiagnostic(
+                provider_id=gate_row.provider_id,
+                code="missing_dependency",
+                message=(
+                    f"local sibling {sibling.repo_name!r} is present, but importing {sibling.module_name!r} "
+                    f"failed because dependency module {missing_module!r} is missing.{requirement_detail}"
+                ),
+                mitigation=(
+                    "Run the local gate with an environment containing the sibling's real dependencies, or pass an "
+                    f"existing venv/site-packages path with --dependency-path / `{_DEPENDENCY_PATHS_ENV}`."
+                ),
+            )
+        )
+
+    return tuple(diagnostics)
+
+
+def build_local_report(
+    *,
+    workspace_root: str | Path | None = None,
+    dependency_paths: Sequence[str | Path] | None = None,
+) -> LocalReleaseGateReport:
     """Run the strict release gate against verified local sibling packages."""
 
     root = (
@@ -215,7 +402,19 @@ def build_local_report(*, workspace_root: str | Path | None = None) -> LocalRele
             ok=False,
             workspace_root=None,
             rows=(),
+            dependency_paths=(),
             diagnostics=(_workspace_not_found(),),
+            release_report=None,
+        )
+
+    dependency_path_rows, dependency_path_diagnostics = _resolve_dependency_paths(dependency_paths)
+    if dependency_path_diagnostics:
+        return LocalReleaseGateReport(
+            ok=False,
+            workspace_root=str(root),
+            rows=(),
+            dependency_paths=dependency_path_rows,
+            diagnostics=dependency_path_diagnostics,
             release_report=None,
         )
 
@@ -225,18 +424,22 @@ def build_local_report(*, workspace_root: str | Path | None = None) -> LocalRele
             ok=False,
             workspace_root=str(root),
             rows=rows,
+            dependency_paths=dependency_path_rows,
             diagnostics=diagnostics,
             release_report=None,
         )
 
+    _prepend_dependency_paths(dependency_path_rows)
     _prepend_source_paths(rows)
     _forget_backing_modules()
     strict_report = release_gate.build_report()
+    dependency_diagnostics = _dependency_diagnostics(rows, strict_report)
     return LocalReleaseGateReport(
-        ok=strict_report.ok,
+        ok=strict_report.ok and not dependency_diagnostics,
         workspace_root=str(root),
         rows=rows,
-        diagnostics=(),
+        dependency_paths=dependency_path_rows,
+        diagnostics=dependency_diagnostics,
         release_report=strict_report,
     )
 
@@ -251,6 +454,12 @@ def render_text(report: LocalReleaseGateReport) -> str:
     lines.append("Local siblings:")
     for row in report.rows:
         lines.append(f"- {row.provider_id}: package={row.package} src={row.src_path}")
+
+    if report.dependency_paths:
+        lines.append("")
+        lines.append("Dependency paths:")
+        for dependency_path in report.dependency_paths:
+            lines.append(f"- {dependency_path.kind}: {dependency_path.path}")
 
     if report.diagnostics:
         lines.append("")
@@ -276,9 +485,17 @@ def main(argv: Sequence[str] | None = None) -> int:
             "nirs4all-benchmarks, and nirs4all-papers"
         ),
     )
+    parser.add_argument(
+        "--dependency-path",
+        action="append",
+        help=(
+            "existing dependency venv root, site-packages directory, or Python path to prepend before the strict gate; "
+            f"may be repeated or set via `{_DEPENDENCY_PATHS_ENV}`"
+        ),
+    )
     args = parser.parse_args(argv)
 
-    report = build_local_report(workspace_root=args.workspace_root)
+    report = build_local_report(workspace_root=args.workspace_root, dependency_paths=args.dependency_path)
     if args.json:
         print(json.dumps(report.as_dict(), indent=2, sort_keys=True))
     else:

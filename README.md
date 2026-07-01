@@ -166,12 +166,17 @@ For a local nirs4all workspace, use the sibling harness:
 python -m nirs4all_providers.local_release_gate --workspace-root /path/to/nirs4all --json
 # or
 nirs4all-providers-local-release-gate --workspace-root /path/to/nirs4all
+# optionally add an existing dependency venv/site-packages/PYTHONPATH directory
+python -m nirs4all_providers.local_release_gate --workspace-root /path/to/nirs4all --dependency-path /path/to/.venv
 ```
 
 The harness verifies that `nirs4all-datasets`, `nirs4all-repository`, `nirs4all-benchmarks`, and
 `nirs4all-papers` each expose a real `src/<module>/__init__.py`, prepends those source paths, then runs
-the same strict release gate. It does not install dependencies or fake missing packages; missing sibling
-trees, non-package layouts, or import-time dependency blockers remain release-gate failures.
+the same strict release gate. Existing dependency paths may be supplied with repeated `--dependency-path`
+flags or `NIRS4ALL_PROVIDERS_LOCAL_DEPENDENCY_PATHS` (using the platform path separator); venv roots are
+resolved to their `site-packages` directories. It does not install dependencies or fake missing packages;
+missing sibling trees, non-package layouts, or import-time dependency blockers remain release-gate
+failures, with the missing transitive module and matching sibling requirement reported when available.
 
 ## License
 
