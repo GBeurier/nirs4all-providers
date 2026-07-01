@@ -15,8 +15,15 @@ def _fakes() -> dict[str, dict[str, object]]:
     return {
         "nirs4all_papers": {"__version__": "0.2.0"},
         "nirs4all_papers.bundle": {"read_bundle": lambda path: {"bundle": path}},
-        "nirs4all_papers.model": {"load_paper": lambda paper_dir: {"paper": paper_dir}},
+        "nirs4all_papers.model": {
+            "load_paper": lambda paper_dir: {"paper": paper_dir},
+            "load_catalog": lambda root: {"root": root, "papers": ["p1", "p2"]},
+        },
         "nirs4all_papers.bibliography": {"build_bibliography": lambda ids: {"refs": ids}},
+        "nirs4all_papers.provenance": {
+            "citation_cff": lambda view: f"cff:{view['paper']}",
+            "paper_bibtex": lambda view: f"@misc{{{view['paper']}}}",
+        },
         "nirs4all_papers.site": {"build_site": _build_site},
     }
 
@@ -29,7 +36,15 @@ def test_version_health_and_capabilities() -> None:
         assert health.available is True
         assert health.reachable is None
         caps = provider.capabilities()
-    assert caps.serves == ("inspect_bundle", "load_paper", "build_methods_section", "build_repro_page")
+    assert caps.serves == (
+        "list_papers",
+        "inspect_bundle",
+        "load_paper",
+        "build_methods_section",
+        "citation",
+        "bibtex",
+        "build_repro_page",
+    )
     assert caps.executes is False
     assert caps.writes is WriteAccess.LOCAL_OUTPUT
 
@@ -40,6 +55,15 @@ def test_inspect_and_load_and_methods() -> None:
         assert provider.inspect_bundle("/x.n4a") == {"bundle": "/x.n4a"}
         assert provider.load_paper("/paper-dir") == {"paper": "/paper-dir"}
         assert provider.build_methods_section(["pls", "snv"]) == {"refs": ["pls", "snv"]}
+
+
+def test_list_papers_and_deposit_sidecar_strings() -> None:
+    with fake_modules(_fakes()):
+        provider = PaperExportProvider()
+        assert provider.list_papers("/root") == {"root": "/root", "papers": ["p1", "p2"]}
+        # citation/bibtex load the paper view, then serialize it to text — pure reads, no file write.
+        assert provider.citation("/paper-dir") == "cff:/paper-dir"
+        assert provider.bibtex("/paper-dir") == "@misc{/paper-dir}"
 
 
 def test_build_repro_page_forwards_out_and_io_wasm() -> None:

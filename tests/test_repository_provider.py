@@ -16,6 +16,10 @@ class _FakePipeline:
     def verify(self) -> None:
         self._record.append(("verify", self.name))
 
+    def recipe(self) -> dict[str, object]:
+        self._record.append(("recipe", self.name))
+        return {"recipe": self.name, "steps": []}
+
 
 def _fake(record: list[tuple[object, ...]]) -> dict[str, dict[str, object]]:
     def _get(name: str, *, root: object = None, cache_dir: object = None, verify: bool = True, **kw: object) -> object:
@@ -49,8 +53,17 @@ def test_version_and_health_when_available() -> None:
 def test_capabilities() -> None:
     with fake_modules(_fake([])):
         caps = PipelineProvider().capabilities()
-    assert caps.serves == ("list_pipelines", "card", "get_pipeline", "get_bundle", "verify")
+    assert caps.serves == ("list_pipelines", "card", "get_pipeline", "recipe", "get_bundle", "verify")
     assert caps.writes is WriteAccess.NONE
+
+
+def test_recipe_resolves_then_returns_canonical_config() -> None:
+    record: list[tuple[object, ...]] = []
+    with fake_modules(_fake(record)):
+        out = PipelineProvider().recipe("p1")
+    assert out == {"recipe": "p1", "steps": []}
+    assert ("get", "p1", True) in record  # resolved via get_pipeline honoring the default verify=True
+    assert ("recipe", "p1") in record
 
 
 def test_list_and_card_forward_filters() -> None:

@@ -41,14 +41,18 @@ datasets = ["nirs4all-datasets"]
 repository = ["nirs4all-repository"]
 benchmarks = ["nirs4all-benchmarks"]
 papers = ["nirs4all-papers"]
+# Optional bridge backing for the soft `DatasetProvider.to_dataset_package` pass-through. Soft-imported
+# like every other extra; absent => the bridge raises a clear ProviderUnavailable, never an ImportError.
+io = ["nirs4all-io"]
 # Everything at once. NOTE: nirs4all-repository pins nirs4all >=0.10,<0.11 — the tightest in the
-# family — so an `[all]` install co-resolves the three providers' nirs4all pins to that window.
+# family — so an `[all]` install co-resolves the providers' nirs4all pins to that window.
 # This package never imports nirs4all itself and must not pin it.
 all = [
     "nirs4all-datasets",
     "nirs4all-repository",
     "nirs4all-benchmarks",
     "nirs4all-papers",
+    "nirs4all-io",
 ]
 dev = [
     "pytest>=7.4.0",

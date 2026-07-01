@@ -19,7 +19,7 @@ from .papers import PaperExportProvider
 from .registry import available_providers, get_provider, provider_health, provider_ids
 from .repository import PipelineProvider
 
-__version__ = "0.1.0.dev0"
+__version__ = "0.2.0.dev0"
 
 __all__ = [
     "BenchmarkProvider",

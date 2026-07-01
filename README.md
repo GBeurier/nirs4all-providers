@@ -9,8 +9,10 @@ through soft-import. When a backing extra is not installed, the provider degrade
 `health().available == False` instead of failing at import time. Providers are **not** controllers and
 never execute ML or write back to the ecosystem.
 
-> Scope: **read slice only.** No `to_dataset_package`, no publish/upload, no benchmark runner. Those
-> are deferred and gated (LOCK-IO / LOCK-RT / DEC-PROV-001). See `IMP_L14` / `SW6_PROV_PLUGINS_spec`.
+> Scope: **read slice.** Publish/upload and the benchmark runner stay deferred and gated (LOCK-RT /
+> DEC-PROV-001). `to_dataset_package` is present only as a *soft, transparent* bridge to nirs4all-io,
+> gated on LOCK-IO: it forwards to the io entrypoint verbatim and stays inert (raising a clear deferral)
+> until that public contract lands. See `IMP_L14` / `SW6_PROV_PLUGINS_spec`.
 
 ## Install
 

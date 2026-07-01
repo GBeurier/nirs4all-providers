@@ -77,3 +77,40 @@ def test_unavailable_backing_degrades() -> None:
             provider.list_datasets()
         with pytest.raises(ProviderUnavailable):
             provider.to_spectro_dataset("d1")
+
+
+# ── soft to_dataset_package bridge (deferred, LOCK-IO / W17) ──────────────────────────────────
+
+
+def test_to_dataset_package_forwards_verbatim_to_io_entrypoint() -> None:
+    """When nirs4all-io exposes the W17 entrypoint, the bridge forwards its args verbatim and adds
+    no assembly of its own (nirs4all-io stays the assembly owner)."""
+    calls: list[tuple[tuple[object, ...], dict[str, object]]] = []
+
+    def _pkg(*args: object, **kwargs: object) -> dict[str, object]:
+        calls.append((args, kwargs))
+        return {"package": list(args), "opts": kwargs}
+
+    with fake_modules({"nirs4all_io": {"__version__": "9.9.9", "to_dataset_package": _pkg}}):
+        out = DatasetProvider().to_dataset_package("d1", role="train")
+    assert out == {"package": ["d1"], "opts": {"role": "train"}}
+    assert calls == [(("d1",), {"role": "train"})]
+
+
+def test_to_dataset_package_unavailable_when_io_absent() -> None:
+    with hidden_modules("nirs4all_io"):
+        with pytest.raises(ProviderUnavailable) as excinfo:
+            DatasetProvider().to_dataset_package("d1")
+    assert "nirs4all-providers[io]" in str(excinfo.value)
+
+
+def test_to_dataset_package_deferred_when_entrypoint_not_yet_published() -> None:
+    # nirs4all-io present but the W17 public entrypoint has not landed → a clear, distinct deferral
+    # (not a ProviderUnavailable, since the backing itself imports fine).
+    with fake_modules({"nirs4all_io": {"__version__": "0.1.3"}}):
+        with pytest.raises(RuntimeError) as excinfo:
+            DatasetProvider().to_dataset_package("d1")
+    assert not isinstance(excinfo.value, ProviderUnavailable)
+    message = str(excinfo.value)
+    assert "deferred" in message
+    assert "LOCK-IO" in message

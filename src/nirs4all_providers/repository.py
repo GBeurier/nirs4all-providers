@@ -1,9 +1,10 @@
 """PipelineProvider — read client over :mod:`nirs4all_repository` (PROV-002).
 
-Wraps the real API verbatim: ``list`` / ``card`` / ``get`` / ``fetch`` plus ``Pipeline.verify``. A
-resolved pipeline is *served config*, not a runnable object — the consumer runs it elsewhere via
-``nirs4all.run(pipeline.to_nirs4all(), ...)``. This client has **no** ecosystem write path: authoring
-and publishing stay in the repository repo's own CLI.
+Wraps the real API verbatim: ``list`` / ``card`` / ``get`` / ``fetch`` plus ``Pipeline.recipe`` and
+``Pipeline.verify``. A resolved pipeline is *served config*, not a runnable object — the consumer runs
+it elsewhere via ``nirs4all.run(pipeline.to_nirs4all(), ...)``; ``recipe`` returns that same config in
+its canonical-JSON form for inspection without bridging to a framework. This client has **no**
+ecosystem write path: authoring and publishing stay in the repository repo's own CLI.
 """
 from __future__ import annotations
 
@@ -30,7 +31,7 @@ class PipelineProvider(_BaseProvider):
 
     def capabilities(self) -> Capabilities:
         return Capabilities(
-            serves=("list_pipelines", "card", "get_pipeline", "get_bundle", "verify"),
+            serves=("list_pipelines", "card", "get_pipeline", "recipe", "get_bundle", "verify"),
             executes=False,
             writes=WriteAccess.NONE,
             portability="served pipeline recipes reference CAP-002/CAP-004 portability levels",
@@ -50,6 +51,14 @@ class PipelineProvider(_BaseProvider):
         params: dict[str, Any] = {"root": self._root, "cache_dir": self._cache_dir, "verify": self._verify}
         params.update(opts)
         return self._require().get(pipeline_id, **params)
+
+    def recipe(self, pipeline_id: str) -> Any:
+        """Return a pipeline's canonical-JSON recipe (delegates to ``Pipeline.recipe``).
+
+        This is the served config as data — framework-agnostic and not bridged; the consumer chooses
+        ``to_nirs4all`` / ``to_dagml`` on the handle from :meth:`get_pipeline` when it wants to run it.
+        """
+        return self.get_pipeline(pipeline_id).recipe()
 
     def get_bundle(self, pipeline_id: str, *, with_artifacts: bool = False) -> Any:
         """Materialise the bundle dir and return its path (delegates to ``nirs4all_repository.fetch``)."""
