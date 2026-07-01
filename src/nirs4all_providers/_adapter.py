@@ -8,7 +8,7 @@ a few lines of pure delegation — no provider business logic ever lives here.
 from __future__ import annotations
 
 from types import ModuleType
-from typing import ClassVar
+from typing import ClassVar, NoReturn
 
 from ._softimport import ProviderUnavailable, soft_import
 from .base import Capabilities, Health
@@ -29,6 +29,17 @@ class _BaseProvider:
         if self._imp.module is None:
             raise ProviderUnavailable(self.provider_id, extra=self._extra, module=self._module, cause=self._imp.error)
         return self._imp.module
+
+    def _require_identifier(self, value: object, *, name: str) -> str:
+        """Return a provider lookup id after rejecting ambiguous blank/non-string values."""
+        if not isinstance(value, str):
+            self._invalid_identifier(name, f"must be a string, got {type(value).__name__}")
+        if not value.strip():
+            self._invalid_identifier(name, "must be a non-empty string")
+        return value
+
+    def _invalid_identifier(self, name: str, reason: str) -> NoReturn:
+        raise ValueError(f"{self.provider_id}.{name} {reason}")
 
     def version(self) -> str:
         """Return the backing package ``__version__``, or ``"unavailable"`` when absent."""

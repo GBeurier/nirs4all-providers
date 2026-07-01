@@ -89,6 +89,7 @@ class BenchmarkProvider(_BaseProvider):
 
     def get_pipeline(self, dag_hash: str) -> dict[str, Any] | None:
         """Return the pipeline with ``pipeline_dag_hash == dag_hash``, or ``None`` (adapter-side filter)."""
+        dag_hash = self._require_identifier(dag_hash, name="pipeline_dag_hash")
         match: dict[str, Any] | None = next(
             (p for p in self._queries().pipelines() if p.get("pipeline_dag_hash") == dag_hash),
             None,
@@ -102,6 +103,7 @@ class BenchmarkProvider(_BaseProvider):
 
     def get_results(self, execution_hash: str) -> dict[str, Any] | None:
         """Return a run's full detail, or ``None`` (delegates to ``Queries.run_detail``)."""
+        execution_hash = self._require_identifier(execution_hash, name="execution_hash")
         result: dict[str, Any] | None = self._queries().run_detail(execution_hash)
         return result
 
@@ -110,6 +112,7 @@ class BenchmarkProvider(_BaseProvider):
 
         Delegates to ``Queries.residuals``; an unknown ``execution_hash`` yields an empty list.
         """
+        execution_hash = self._require_identifier(execution_hash, name="execution_hash")
         return list(self._queries().residuals(execution_hash, partition=partition))
 
     def planned(self) -> list[dict[str, Any]]:

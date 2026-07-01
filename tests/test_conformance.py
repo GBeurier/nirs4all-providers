@@ -81,6 +81,12 @@ def test_dataset_provider_exposes_soft_package_bridge_as_typed_read() -> None:
     assert "describe_dataset_package" in adapter.capabilities().serves
 
 
+def test_dataset_provider_exposes_retrieve_as_local_cache_read() -> None:
+    adapter = DatasetProvider()
+    assert callable(adapter.retrieve_dataset)
+    assert "retrieve_dataset" in adapter.capabilities().serves
+
+
 # ── health matrix (hermetic) ─────────────────────────────────────────────────────────────────
 
 
@@ -108,11 +114,14 @@ def test_health_matrix_absent_degrades_uniformly() -> None:
 
 def test_conformance_datasets_real_api() -> None:
     mod = pytest.importorskip("nirs4all_datasets")
-    for name in ("list", "card", "get"):
+    for name in ("list", "card", "get", "retrieve"):
         assert callable(getattr(mod, name, None)), f"nirs4all_datasets.{name} missing"
     get_params = inspect.signature(mod.get).parameters
     for kw in ("root", "cache_dir"):
         assert kw in get_params, f"nirs4all_datasets.get lost keyword {kw!r}"
+    retrieve_params = inspect.signature(mod.retrieve).parameters
+    for kw in ("root", "cache_dir"):
+        assert kw in retrieve_params, f"nirs4all_datasets.retrieve lost keyword {kw!r}"
     # The NirsDataset.to_nirs4all bridge to_spectro_dataset relies on.
     assert hasattr(mod.NirsDataset, "to_nirs4all")
 

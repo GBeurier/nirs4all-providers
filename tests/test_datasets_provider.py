@@ -29,6 +29,7 @@ def _fake() -> dict[str, dict[str, object]]:
             "list": lambda root, **filters: [{"root": root, "filters": filters}],
             "card": lambda name, root: {"name": name, "root": root},
             "get": lambda name, **kw: _FakeNirsDataset(name, kw),
+            "retrieve": lambda name, **kw: {"name": name, "kw": kw, "kind": "canonical"},
         }
     }
 
@@ -50,6 +51,7 @@ def test_capabilities() -> None:
         "list_datasets",
         "card",
         "get_dataset",
+        "retrieve_dataset",
         "to_spectro_dataset",
         "to_dataset_package",
         "describe_dataset_package",
@@ -71,6 +73,24 @@ def test_get_dataset_forwards_root_cache_dir_and_opts() -> None:
         dataset = provider.get_dataset("d1", split="train")
         assert dataset.name == "d1"
         assert dataset.kw == {"root": "/cat", "cache_dir": "/cache", "split": "train"}
+
+
+def test_retrieve_dataset_forwards_root_cache_dir_and_opts_without_upload() -> None:
+    with fake_modules(_fake()):
+        provider = DatasetProvider(root="/cat", cache_dir="/cache")
+        status = provider.retrieve_dataset("d1", route_id="primary", prepare=False)
+    assert status == {
+        "name": "d1",
+        "kw": {"root": "/cat", "cache_dir": "/cache", "route_id": "primary", "prepare": False},
+        "kind": "canonical",
+    }
+
+
+def test_dataset_lookup_rejects_blank_dataset_id() -> None:
+    with fake_modules(_fake()):
+        provider = DatasetProvider()
+        with pytest.raises(ValueError, match="datasets\\.dataset_id must be a non-empty string"):
+            provider.get_dataset(" ")
 
 
 def test_to_spectro_dataset_bridges_via_to_nirs4all() -> None:
