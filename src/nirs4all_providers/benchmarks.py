@@ -1,16 +1,17 @@
-"""BenchmarkProvider — read client over :mod:`nirs4all_benchmarks` ("the Arena", PROV-003).
+"""BenchmarkProvider — local client over :mod:`nirs4all_benchmarks` ("the Arena", PROV-003).
 
 Wraps the read-only ``Queries`` facade over a local ``ArenaStore``: ``overview`` / ``datasets`` /
 ``operators`` / ``pipelines`` / ``leaderboard`` / ``run_detail`` / ``residuals`` / ``planned`` plus an
-adapter-side ``get_pipeline(dag_hash)`` filter. The Arena never runs compute and this client never
-ingests or queues: there is **no runner and no write path here** (``queue_evaluation`` is deferred,
-gated on LOCK-RT / CLU-006). All reads stay on the local store; no network call is made by this
-adapter.
+adapter-side ``get_pipeline(dag_hash)`` lookup. It also delegates ``queue_pipeline_test`` to the
+backing ``ingestion.upload`` state machine, which registers a bare pipeline and writes only local
+``planned_runs`` rows for target n4a dataset tokens. The Arena never runs compute; a runner fulfils
+planned rows later by ingesting real execution exports. No network call or ecosystem write-back is
+made by this adapter.
 """
 from __future__ import annotations
 
 import os
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any, ClassVar, cast
 
@@ -32,7 +33,7 @@ _PIPELINE_BY_HASH_SQL = """
 
 
 class BenchmarkProvider(_BaseProvider):
-    """Thin read client over a local ``nirs4all-benchmarks`` Arena store."""
+    """Thin local client over a ``nirs4all-benchmarks`` Arena store."""
 
     provider_id: ClassVar[str] = "benchmarks"
     _module: ClassVar[str] = "nirs4all_benchmarks"
@@ -54,9 +55,10 @@ class BenchmarkProvider(_BaseProvider):
                 "get_results",
                 "residuals",
                 "planned",
+                "queue_pipeline_test",
             ),
             executes=False,
-            writes=WriteAccess.NONE,
+            writes=WriteAccess.LOCAL_STORE,
             portability="benchmark scores are weights-free and residual-keyed (DESIGN.md)",
         )
 
@@ -78,6 +80,24 @@ class BenchmarkProvider(_BaseProvider):
         from nirs4all_benchmarks.store.queries import Queries
 
         return Queries(ArenaStore(self._resolve_store_root()))
+
+    def _target_dataset_tokens(self, target_datasets: object) -> list[str]:
+        if isinstance(target_datasets, (str, bytes)) or not isinstance(target_datasets, Sequence):
+            self._invalid_identifier("target_datasets", "must be a sequence of non-empty strings")
+        tokens: list[str] = []
+        sequence = cast(Sequence[object], target_datasets)
+        for index, token in enumerate(sequence):
+            if not isinstance(token, str):
+                self._invalid_identifier(
+                    f"target_datasets[{index}]",
+                    f"must be a string, got {type(token).__name__}",
+                )
+            if not token.strip():
+                self._invalid_identifier(f"target_datasets[{index}]", "must be a non-empty string")
+            tokens.append(token)
+        if not tokens:
+            self._invalid_identifier("target_datasets", "must contain at least one dataset token")
+        return tokens
 
     def overview(self) -> dict[str, Any]:
         """Return the store census: table counts, available metrics, schema version (``Queries.overview``)."""
@@ -144,3 +164,51 @@ class BenchmarkProvider(_BaseProvider):
     def planned(self) -> list[dict[str, Any]]:
         """List planned (not-yet-run) conditions awaiting a runner (delegates to ``Queries.planned``)."""
         return list(self._queries().planned())
+
+    def queue_pipeline_test(
+        self,
+        payload: Any,
+        *,
+        target_datasets: Sequence[str],
+        collection_id: str = "uploads",
+        as_release: bool = False,
+        filename: str | None = None,
+    ) -> dict[str, Any]:
+        """Register/inspect a local pipeline test plan (delegates to ``ingestion.upload``).
+
+        ``payload`` is forwarded verbatim to the Arena's upload state machine: a ``.n4a`` path, JSON/YAML
+        recipe text, a bare pipeline recipe, or an ``ArenaRunExport``. For bare pipelines, the backing
+        service registers the recipe and creates local ``planned_runs`` rows for ``target_datasets`` when
+        no valid execution already exists. This method never executes the pipeline and never writes back
+        to repository, datasets, or papers.
+        """
+        targets = self._target_dataset_tokens(target_datasets)
+        collection = self._require_identifier(collection_id, name="collection_id")
+        self._require()
+        from nirs4all_benchmarks.ingestion import upload
+        from nirs4all_benchmarks.store.arena_store import ArenaStore
+
+        store = ArenaStore(self._resolve_store_root())
+        try:
+            result = upload(
+                store,
+                payload,
+                collection_id=collection,
+                target_datasets=targets,
+                as_release=as_release,
+                filename=filename,
+            )
+        finally:
+            close = getattr(store, "close", None)
+            if callable(close):
+                close()
+
+        to_json = getattr(result, "to_json", None)
+        if callable(to_json):
+            json_result = to_json()
+            if isinstance(json_result, Mapping):
+                return cast(dict[str, Any], dict(json_result))
+            return cast(dict[str, Any], json_result)
+        if isinstance(result, Mapping):
+            return cast(dict[str, Any], dict(result))
+        return cast(dict[str, Any], result)

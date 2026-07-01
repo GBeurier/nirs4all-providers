@@ -12,13 +12,13 @@ write-back are delegated elsewhere by design (see ``SW6_PROV_PLUGINS_spec`` / ``
 from __future__ import annotations
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 from typing import ClassVar, Protocol, runtime_checkable
 
 __all__ = ["Capabilities", "Health", "ProviderPlugin", "WriteAccess"]
 
 
-class WriteAccess(str, Enum):
+class WriteAccess(StrEnum):
     """Provider-level write policy (PROV-005).
 
     The read-adapter slice never exposes an ecosystem or network write path. The strongest write a
@@ -27,6 +27,7 @@ class WriteAccess(str, Enum):
 
     NONE = "none"  # no write path at all (the repository read client)
     LOCAL_CACHE = "local-cache"  # writes only into a local on-disk cache (datasets ``get()``)
+    LOCAL_STORE = "local-store"  # writes only into a caller/local service store (benchmark planning)
     LOCAL_OUTPUT = "local-output"  # writes only into a caller-chosen output dir (papers build)
     GATED = "gated"  # admin/governance-gated remote write — never reached in this slice
 

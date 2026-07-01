@@ -56,7 +56,7 @@ sd = datasets.to_spectro_dataset("some_id")  # -> nirs4all SpectroDataset (needs
 |---|---|---|---|---|
 | `DatasetProvider` | `datasets` | `nirs4all-datasets` | `list_datasets` · `card` · `get_dataset` · `retrieve_dataset` · `to_spectro_dataset` · `to_dataset_package` · `describe_dataset_package` | local cache (via `get()` / `retrieve()`) |
 | `PipelineProvider` | `repository` | `nirs4all-repository` | `list_pipelines` · `card` · `get_pipeline` · `get_bundle` · `verify` | none |
-| `BenchmarkProvider` | `benchmarks` | `nirs4all-benchmarks` | `list_pipelines` · `get_pipeline` · `leaderboard` · `get_results` · `planned` | none |
+| `BenchmarkProvider` | `benchmarks` | `nirs4all-benchmarks` | `list_pipelines` · `get_pipeline` · `leaderboard` · `get_results` · `planned` · `queue_pipeline_test` | local Arena store (`planned_runs`) |
 | `PaperExportProvider` | `papers` | `nirs4all-papers` | `inspect_bundle` · `load_paper` · `build_methods_section` · `build_repro_page` | local output dir (marker-guarded) |
 
 Every adapter also exposes the contract trio: `provider_id`, `version()`, `health()`, `capabilities()`.
@@ -67,6 +67,11 @@ methods, repository pipeline ids from `PipelineProvider.list_pipelines()` rows w
 with benchmark `get_pipeline()`. Benchmark by-hash lookup uses the local Arena store read API when
 available, so it does not require listing the whole pipeline catalogue first.
 
+Benchmark local planning stays write-disconnected from the ecosystem: `queue_pipeline_test(payload,
+target_datasets=[...])` delegates to `nirs4all_benchmarks.ingestion.upload`, which can register a
+pipeline recipe and write local `planned_runs` rows in the Arena store, but it does not execute the
+pipeline or publish anything back to repository, datasets, or papers.
+
 ## Contract
 
 - **`ProviderPlugin`** — the structural protocol (`provider_id`, `version()`, `health()`,
@@ -76,7 +81,7 @@ available, so it does not require listing the whole pipeline catalogue first.
 - **`Capabilities`** — `{serves, executes, writes, portability}`. Provider-level and **distinct from**
   the operator-level `ControllerCapability` (LOCK-CAP); the `portability` field only *references*
   CAP-002/CAP-004 for served artifacts.
-- **`WriteAccess`** — `none` / `local-cache` / `local-output` / `gated`. The read slice never reaches
+- **`WriteAccess`** — `none` / `local-cache` / `local-store` / `local-output` / `gated`. The read slice never reaches
   `gated`.
 
 ## Boundaries

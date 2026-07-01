@@ -74,9 +74,10 @@ def test_version_health_and_capabilities(tmp_path: object) -> None:
         "get_results",
         "residuals",
         "planned",
+        "queue_pipeline_test",
     )
     assert caps.executes is False
-    assert caps.writes is WriteAccess.NONE
+    assert caps.writes is WriteAccess.LOCAL_STORE
 
 
 def test_overview_datasets_operators(tmp_path: object) -> None:
@@ -156,6 +157,84 @@ def test_leaderboard_results_and_planned(tmp_path: object) -> None:
         assert provider.get_results("e1") == {"execution_hash": "e1"}
         assert provider.get_results("absent") is None
         assert provider.planned() == [{"plan_id": 1, "status": "planned"}]
+
+
+def test_queue_pipeline_test_delegates_to_local_upload_and_closes_store(tmp_path: object) -> None:
+    calls: list[tuple[object, ...]] = []
+
+    class _UploadStore:
+        def __init__(self, root: str) -> None:
+            self.root = root
+
+        def close(self) -> None:
+            calls.append(("close", self.root))
+
+    class _UploadResult:
+        def to_json(self) -> dict[str, object]:
+            return {
+                "kind": "pipeline",
+                "status": "registered",
+                "pipeline_dag_hash": "pdag_1",
+                "datasets": [{"token": "corn-public", "status": "planned", "plan_id": "plan_1"}],
+            }
+
+    def _upload(
+        store: _UploadStore,
+        payload: object,
+        *,
+        collection_id: str,
+        target_datasets: list[str],
+        as_release: bool,
+        filename: str | None,
+    ) -> _UploadResult:
+        calls.append(("upload", store.root, payload, collection_id, target_datasets, as_release, filename))
+        return _UploadResult()
+
+    fakes = {
+        "nirs4all_benchmarks": {"__version__": "0.1.0"},
+        "nirs4all_benchmarks.ingestion": {"upload": _upload},
+        "nirs4all_benchmarks.store": {},
+        "nirs4all_benchmarks.store.arena_store": {"ArenaStore": _UploadStore},
+        "nirs4all_benchmarks.store.queries": {"Queries": _FakeQueries},
+    }
+    payload = [{"op": "SNV"}, {"op": "PLSRegression", "n_components": 10}]
+    with fake_modules(fakes):
+        provider = BenchmarkProvider(store_root=str(tmp_path))
+        out = provider.queue_pipeline_test(
+            payload,
+            target_datasets=("corn-public",),
+            collection_id="W80-local",
+            as_release=True,
+            filename="pipeline.yaml",
+        )
+    assert out == {
+        "kind": "pipeline",
+        "status": "registered",
+        "pipeline_dag_hash": "pdag_1",
+        "datasets": [{"token": "corn-public", "status": "planned", "plan_id": "plan_1"}],
+    }
+    assert calls == [
+        ("upload", str(tmp_path), payload, "W80-local", ["corn-public"], True, "pipeline.yaml"),
+        ("close", str(tmp_path)),
+    ]
+
+
+def test_queue_pipeline_test_rejects_empty_target_dataset_before_store_open(tmp_path: object) -> None:
+    class _StoreShouldNotOpen:
+        def __init__(self, root: str) -> None:
+            raise AssertionError(f"ArenaStore should not open for invalid target dataset: {root}")
+
+    fakes = {
+        "nirs4all_benchmarks": {"__version__": "0.1.0"},
+        "nirs4all_benchmarks.ingestion": {"upload": lambda *a, **kw: {}},
+        "nirs4all_benchmarks.store": {},
+        "nirs4all_benchmarks.store.arena_store": {"ArenaStore": _StoreShouldNotOpen},
+        "nirs4all_benchmarks.store.queries": {"Queries": _FakeQueries},
+    }
+    with fake_modules(fakes):
+        provider = BenchmarkProvider(store_root=str(tmp_path))
+        with pytest.raises(ValueError, match=r"benchmarks\.target_datasets\[0\] must be a non-empty string"):
+            provider.queue_pipeline_test([{"op": "SNV"}], target_datasets=[" "])
 
 
 def test_result_lookup_rejects_blank_execution_hash(tmp_path: object) -> None:

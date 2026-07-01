@@ -143,11 +143,16 @@ def test_conformance_repository_real_api() -> None:
 
 def test_conformance_benchmarks_real_api() -> None:
     pytest.importorskip("nirs4all_benchmarks")
+    from nirs4all_benchmarks.ingestion import upload
     from nirs4all_benchmarks.store.arena_store import ArenaStore
     from nirs4all_benchmarks.store.queries import Queries
 
     assert "root" in inspect.signature(ArenaStore.__init__).parameters
     assert callable(getattr(ArenaStore, "query_one", None)), "ArenaStore.query_one missing"
+    assert callable(upload), "nirs4all_benchmarks.ingestion.upload missing"
+    upload_params = inspect.signature(upload).parameters
+    for kw in ("collection_id", "target_datasets", "as_release", "filename"):
+        assert kw in upload_params, f"nirs4all_benchmarks.ingestion.upload lost keyword {kw!r}"
     for name in (
         "overview",
         "datasets",
