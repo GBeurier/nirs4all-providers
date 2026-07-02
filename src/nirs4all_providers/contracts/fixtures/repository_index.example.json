@@ -1,0 +1,33 @@
+{
+  "base_url": "https://repository.nirs4all.org",
+  "count": 1,
+  "generated_at": "2026-06-16",
+  "pipelines": {
+    "snv_savgol_pls": {
+      "id": "snv_savgol_pls",
+      "name": "SNV · Savitzky–Golay · PLS",
+      "framework": "nirs4all",
+      "kind": "recipe",
+      "task": "regression",
+      "version": "1.0.0",
+      "trust": "official",
+      "tags": ["pls", "snv", "savitzky_golay", "baseline"],
+      "descriptor": {
+        "relpath": "descriptor.yaml",
+        "sha256": "85e30bc36b3584ffc3e01973bd378b9c48890be5ebea5a34d7d340237caefb9d",
+        "size_bytes": 1286,
+        "url": "https://repository.nirs4all.org/data/pipelines/snv_savgol_pls/descriptor.yaml"
+      },
+      "recipe": {
+        "format": "nirs4all/pipeline-config",
+        "relpath": "pipeline.json",
+        "sha256": "c96fcb5e548d7840d266624b6ba6557693a41fb3d890939b4d1c8fb7ed4d76b2",
+        "size_bytes": 622,
+        "url": "https://repository.nirs4all.org/data/pipelines/snv_savgol_pls/pipeline.json"
+      }
+    }
+  },
+  "repository": "nirs4all-repository",
+  "repository_version": "0.1.0",
+  "schema_version": 1
+}

@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "provider_id": "datasets",
+  "version": "unavailable",
+  "health": {
+    "available": false,
+    "reachable": null,
+    "version": null,
+    "detail": "ModuleNotFoundError: No module named 'nirs4all_datasets'"
+  },
+  "capabilities": {
+    "serves": [
+      "list_datasets",
+      "card",
+      "get_dataset",
+      "retrieve_dataset",
+      "to_spectro_dataset",
+      "to_dataset_package",
+      "describe_dataset_package"
+    ],
+    "executes": false,
+    "writes": "local-cache",
+    "portability": "served datasets reference CAP-002/CAP-004 portability levels"
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GBeurier/nirs4all-ecosystem/schemas/providers/pipeline_descriptor.v1.schema.json",
+  "title": "nirs4all Pipeline Descriptor v1",
+  "$comment": "Content contract for a nirs4all-repository pipeline descriptor (pipelines/<id>/descriptor.yaml, schema_version 1), i.e. the value returned by PipelineProvider.card(). Served as YAML in the checkout and mirrored as validated JSON via card(); this schema constrains the JSON form. A resolved descriptor points to a `recipe` artifact (format + path) which the client fetches and verifies; the descriptor is SERVED CONFIG, not a runnable object. Only stable fields are constrained; provenance/evaluation/governance sub-blocks are allowed via additionalProperties:true.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["schema_version", "id", "name", "summary", "framework", "kind", "task", "version", "license", "created_at", "authors", "recipe"],
+  "properties": {
+    "schema_version": { "type": "integer", "minimum": 1 },
+    "id": { "type": "string" },
+    "name": { "type": "string" },
+    "summary": { "type": "string" },
+    "description": { "type": ["string", "null"] },
+    "framework": { "type": "string", "enum": ["nirs4all", "dag-ml"] },
+    "kind": { "type": "string", "enum": ["recipe", "fitted"] },
+    "task": { "type": "string" },
+    "tags": { "type": "array", "items": { "type": "string" } },
+    "version": { "type": "string" },
+    "license": { "type": "string" },
+    "created_at": { "type": "string" },
+    "updated_at": { "type": ["string", "null"] },
+    "authors": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string" },
+          "email": { "type": ["string", "null"] },
+          "orcid": { "type": ["string", "null"] },
+          "affiliation": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "recipe": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["format", "path"],
+      "properties": {
+        "format": {
+          "type": "string",
+          "enum": ["nirs4all/pipeline-config", "dag-ml/pipeline-dsl", "dag-ml/compiled-artifact"]
+        },
+        "path": { "type": "string" }
+      }
+    }
+  }
+}

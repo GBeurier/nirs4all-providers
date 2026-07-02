@@ -1,0 +1,44 @@
+{
+  "schema_version": "2.0",
+  "dataset_id": "regression_demo",
+  "processing_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+  "converter_name": "nirs4all-datasets-canonical",
+  "converter_version": "0.2.0a1",
+  "files": [
+    {
+      "path": "raw/X.csv",
+      "role": "raw",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "size": 13498,
+      "native_checksum_type": null,
+      "native_checksum": null
+    },
+    {
+      "path": "canonical/sources/X.parquet",
+      "role": "canonical",
+      "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "size": 148934,
+      "native_checksum_type": null,
+      "native_checksum": null
+    },
+    {
+      "path": "canonical/variables.parquet",
+      "role": "canonical",
+      "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+      "size": 20479,
+      "native_checksum_type": null,
+      "native_checksum": null
+    }
+  ],
+  "canonical_hashes": {
+    "X.parquet": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "variables.parquet": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+  },
+  "row_counts": {
+    "X": 200,
+    "variables": 2
+  },
+  "doi": null,
+  "dataset_version": null,
+  "created_at": "2026-06-11T23:09:07.034032+00:00"
+}

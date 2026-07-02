@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "id": "snv_savgol_pls",
+  "name": "SNV · Savitzky–Golay · PLS",
+  "summary": "Robust NIRS regression baseline — SNV scatter correction, first-derivative SG smoothing, 12-component PLS.",
+  "description": "A dependable regression baseline for continuous NIRS targets.",
+  "framework": "nirs4all",
+  "kind": "recipe",
+  "task": "regression",
+  "tags": ["pls", "snv", "savitzky_golay", "baseline", "preprocessing"],
+  "version": "1.0.0",
+  "license": "CeCILL-2.1 OR AGPL-3.0-or-later",
+  "created_at": "2026-06-17",
+  "updated_at": null,
+  "authors": [
+    { "name": "Gregory Beurier", "email": "gregory.beurier@cirad.fr", "orcid": null, "affiliation": "CIRAD" }
+  ],
+  "recipe": {
+    "format": "nirs4all/pipeline-config",
+    "path": "pipeline.json"
+  }
+}

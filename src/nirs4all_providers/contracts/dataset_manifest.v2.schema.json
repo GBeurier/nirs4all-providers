@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GBeurier/nirs4all-ecosystem/schemas/providers/dataset_manifest.v2.schema.json",
+  "title": "nirs4all Dataset Fetch Manifest v2",
+  "$comment": "The FETCHER contract for a nirs4all-datasets dataset (datasets/<id>/manifest.json, schema_version 2.0). This is the artifact an R/JS/WASM client ports a thin fetcher over: for each entry, resolve the bytes (by DOI/open-origin URL), stream to a local cache, and verify sha256 before use. `canonical_hashes` and `row_counts` let a client validate the materialized canonical Parquet without re-parsing. No Python is required to fetch+verify. Writes are local-cache only; there is no upload/publish field in this contract.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["schema_version", "dataset_id", "files"],
+  "properties": {
+    "schema_version": { "type": "string", "$comment": "Manifest schema version, e.g. '2.0'." },
+    "dataset_id": { "type": "string" },
+    "processing_hash": { "type": ["string", "null"] },
+    "converter_name": { "type": ["string", "null"] },
+    "converter_version": { "type": ["string", "null"] },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["path", "role", "sha256", "size"],
+        "properties": {
+          "path": {
+            "type": "string",
+            "$comment": "Relative path under the dataset dir, e.g. 'canonical/sources/X.parquet'."
+          },
+          "role": {
+            "type": "string",
+            "$comment": "raw|canonical. Open vocabulary; raw are origin bytes, canonical are the materialized Parquet a consumer loads."
+          },
+          "sha256": {
+            "type": "string",
+            "$comment": "Lowercase hex SHA-256 the fetcher MUST verify after download."
+          },
+          "size": { "type": "integer", "minimum": 0 },
+          "native_checksum_type": { "type": ["string", "null"] },
+          "native_checksum": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "canonical_hashes": {
+      "type": "object",
+      "additionalProperties": true,
+      "$comment": "Map of canonical Parquet basename -> sha256, a fast-path integrity check for the materialized form."
+    },
+    "row_counts": {
+      "type": "object",
+      "additionalProperties": true,
+      "$comment": "Map of canonical table name -> row count."
+    },
+    "doi": {
+      "type": ["string", "null"],
+      "$comment": "DOI that pins remote bytes for fetch-by-DOI; null for local/open-origin-only datasets."
+    },
+    "dataset_version": { "type": ["string", "null"] },
+    "created_at": { "type": ["string", "null"] }
+  }
+}

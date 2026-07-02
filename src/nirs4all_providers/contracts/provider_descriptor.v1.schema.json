@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GBeurier/nirs4all-ecosystem/schemas/providers/provider_descriptor.v1.schema.json",
+  "title": "nirs4all Provider Descriptor v1",
+  "$comment": "LOCK-PROV / DEC-PROV-001 neutral provider descriptor. This is the LANGUAGE-NEUTRAL projection of a provider client's identity+liveness+capabilities (the Python `ProviderPlugin` {provider_id, version(), health(), capabilities()} is ONE conformant emitter of this shape; an R/JS/WASM provider client must emit the same shape). It carries NO Python type; it is the contract every language client validates against. `writes` mirrors WriteAccess; the read slice never emits `gated`. `executes` is always false for a provider (execution belongs to runtime, see rt_run_request.v1). See docs/contracts/providers/README.md.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "provider_id", "version", "health", "capabilities"],
+  "properties": {
+    "schema_version": {
+      "$comment": "The descriptor envelope's own version, independent of any backing package version.",
+      "type": "integer",
+      "minimum": 1
+    },
+    "provider_id": {
+      "$comment": "Stable provider identifier. The four read-slice providers are datasets|repository|benchmarks|papers; other language surfaces may register additional ids.",
+      "type": "string"
+    },
+    "version": {
+      "$comment": "The backing content/service version as reported by the client, or the literal 'unavailable' when the backing is not reachable in this environment.",
+      "type": "string"
+    },
+    "health": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["available"],
+      "properties": {
+        "available": {
+          "$comment": "Whether the backing content/service is reachable for this client (import-available in Python; endpoint/catalogue reachable elsewhere).",
+          "type": "boolean"
+        },
+        "reachable": {
+          "$comment": "Optional network-free deeper probe (catalogue enumerable, store/index present). null when no deeper probe is performed.",
+          "type": ["boolean", "null"]
+        },
+        "version": { "type": ["string", "null"] },
+        "detail": { "type": ["string", "null"] }
+      }
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["serves", "executes", "writes"],
+      "properties": {
+        "serves": {
+          "$comment": "Read/serve/plan/export method names the client exposes. Names are advisory documentation, not a closed vocabulary.",
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "executes": {
+          "$comment": "Always false for a provider. A true value is a contract violation (execution is a runtime concern).",
+          "type": "boolean"
+        },
+        "writes": {
+          "$comment": "Write policy. The read slice reaches at most local-cache/local-store/local-output. `gated` is reserved for a future admin/governance-gated remote write and is never emitted by the read slice.",
+          "type": "string",
+          "enum": ["none", "local-cache", "local-store", "local-output", "gated"]
+        },
+        "portability": {
+          "$comment": "Free-text reference to the CAP-002/CAP-004 portability level of served artifacts. References the capability vocabulary; never forks it.",
+          "type": ["string", "null"]
+        }
+      }
+    }
+  }
+}

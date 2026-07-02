@@ -1,0 +1,41 @@
+{
+  "schema_version": "2.0",
+  "identity": {
+    "id": "regression_demo",
+    "name": "Regression demo (NIRS)",
+    "description": "Small public NIRS regression dataset used as a portability reference.",
+    "domain": "demo",
+    "keywords": ["nir", "demo", "regression"],
+    "tier": "public"
+  },
+  "governance": {
+    "tier": "public",
+    "license": "CC-BY-4.0",
+    "access_policy": "Open download.",
+    "permitted_use": "Research and benchmarking.",
+    "redistribution_rights": "Redistribution permitted with attribution."
+  },
+  "integrity": {
+    "content_hash": "1111111111111111111111111111111111111111111111111111111111111111",
+    "metadata_hash": "2222222222222222222222222222222222222222222222222222222222222222",
+    "processing_hash": "3333333333333333333333333333333333333333333333333333333333333333",
+    "manifest": "manifest.json"
+  },
+  "versions": {
+    "content": "1.0.0",
+    "schema_protocol": "2.0"
+  },
+  "sources": [
+    {
+      "name": "spectra",
+      "source_id": "X",
+      "n_observations": 200,
+      "n_variables": 256,
+      "modality": "nir"
+    }
+  ],
+  "variables": [
+    { "name": "protein", "role": "target", "type": "numeric", "unit": "%" },
+    { "name": "sample_origin", "role": "metadata", "type": "categorical", "unit": null }
+  ]
+}

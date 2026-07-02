@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GBeurier/nirs4all-ecosystem/schemas/providers/dataset_card.v2.schema.json",
+  "title": "nirs4all Dataset Identity Card v2",
+  "$comment": "Content contract for a nirs4all-datasets identity card (datasets/<id>/card.json, schema_version 2.0). This is the language-neutral DISCOVERY/METADATA surface behind DatasetProvider.card()/list_datasets(). It is served as a static JSON artifact; any language client reads it without executing Python. Only the stable, load-bearing fields are constrained; the heavy qualification/profiling blocks (alignment, profile, score_plot, ...) are allowed via additionalProperties:true so the contract stays robust to metric evolution. `versions.content` pins bytes; `versions.schema_protocol` pins the re-qualification schema. `integrity.*` are the content-addressed hashes a fetcher verifies against dataset_manifest.v2.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["schema_version", "identity", "governance", "integrity", "versions", "sources", "variables"],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "$comment": "Card schema version, e.g. '2.0'."
+    },
+    "identity": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["id", "name", "tier"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": ["string", "null"] },
+        "domain": { "type": ["string", "null"] },
+        "keywords": { "type": "array", "items": { "type": "string" } },
+        "tier": {
+          "type": "string",
+          "enum": ["public", "private", "anonymized"]
+        }
+      }
+    },
+    "governance": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["tier", "license"],
+      "properties": {
+        "tier": {
+          "type": "string",
+          "enum": ["public", "private", "anonymized"]
+        },
+        "license": { "type": "string" },
+        "access_policy": { "type": ["string", "null"] },
+        "permitted_use": { "type": ["string", "null"] },
+        "redistribution_rights": { "type": ["string", "null"] }
+      }
+    },
+    "integrity": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["content_hash", "metadata_hash", "processing_hash", "manifest"],
+      "properties": {
+        "content_hash": { "type": "string" },
+        "metadata_hash": { "type": "string" },
+        "processing_hash": { "type": "string" },
+        "manifest": {
+          "type": "string",
+          "$comment": "Relative path to the fetch manifest (dataset_manifest.v2), e.g. 'manifest.json'."
+        }
+      }
+    },
+    "versions": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["content", "schema_protocol"],
+      "properties": {
+        "content": {
+          "type": "string",
+          "$comment": "Byte-change axis: bumps when cached bytes change."
+        },
+        "schema_protocol": {
+          "type": "string",
+          "$comment": "Re-qualification axis: bumps when the card schema/protocol changes."
+        }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["name", "n_variables"],
+        "properties": {
+          "name": { "type": "string" },
+          "source_id": { "type": ["string", "null"] },
+          "n_observations": { "type": ["integer", "null"] },
+          "n_variables": { "type": "integer" },
+          "modality": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "variables": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["name", "role", "type"],
+        "properties": {
+          "name": { "type": "string" },
+          "role": {
+            "type": "string",
+            "$comment": "Sample-keyed variable role, e.g. target|metadata|feature. Open vocabulary; not enum-constrained here."
+          },
+          "type": {
+            "type": "string",
+            "$comment": "numeric|categorical|..."
+          },
+          "unit": { "type": ["string", "null"] }
+        }
+      }
+    }
+  }
+}

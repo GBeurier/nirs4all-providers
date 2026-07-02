@@ -74,7 +74,7 @@ where = ["src"]
 include = ["nirs4all_providers*"]
 
 [tool.setuptools.package-data]
-nirs4all_providers = ["py.typed"]
+nirs4all_providers = ["py.typed", "contracts/*.schema.json", "contracts/fixtures/*.json"]
 
 [tool.setuptools.dynamic]
 version = { attr = "nirs4all_providers.__version__" }

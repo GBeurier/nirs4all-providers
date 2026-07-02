@@ -86,10 +86,52 @@ pipeline or publish anything back to repository, datasets, or papers.
 - **`WriteAccess`** — `none` / `local-cache` / `local-store` / `local-output` / `gated`. The read slice never reaches
   `gated`; `local-output` is export output, not repository publish support.
 
+## Neutral contracts (multi-language)
+
+This Python package is **one conformant client** of a language-neutral provider contract — not the
+definition of it. The read slice (datasets · repository) is fundamentally a set of **static content
+artifacts** (a catalogue index, identity cards, per-file SHA-256 fetch manifests, descriptors, recipes)
+served over HTTPS/DOI and integrity-verified. None of that requires Python, so R / JS-WASM / Rust clients
+reach the same data by **porting the schemas + a thin fetcher**, never by depending on this package.
+
+The five schemas are frozen in the ecosystem repo (`nirs4all-ecosystem/docs/contracts/providers/`) and
+mirrored **byte-identically** here under [`src/nirs4all_providers/contracts/`](./src/nirs4all_providers/contracts):
+
+| Schema | Governs | Behind |
+|---|---|---|
+| `provider_descriptor.v1` | neutral `{provider_id, version, health, capabilities}` a client emits | `provider_id`/`version()`/`health()`/`capabilities()` |
+| `dataset_card.v2` | dataset identity/metadata card | `DatasetProvider.card` / `list_datasets` |
+| `dataset_manifest.v2` | per-file SHA-256 fetch manifest | dataset byte acquisition |
+| `repository_index.v1` | pipeline catalogue index | `PipelineProvider.get_pipeline_list` |
+| `pipeline_descriptor.v1` | pipeline descriptor/card | `PipelineProvider.card` |
+
+```python
+import nirs4all_providers as providers
+
+# Emit the neutral descriptor for every registered provider (no backing extra required):
+providers.all_provider_descriptors()          # -> [ {schema_version, provider_id, version, health, capabilities}, ... ]
+providers.provider_descriptor(providers.get_provider("datasets"))  # -> the same shape for one live adapter
+
+# Load / validate against the vendored schemas (pure-stdlib subset validator, no third-party dep):
+schema = providers.load_contract_schema("dataset_card.v2")
+providers.iter_contract_errors(providers.load_contract_fixture("dataset_card.example"), schema)  # -> [] when valid
+```
+
+The R and WASM story is explicit in the ecosystem `docs/contracts/providers/README.md`: port the schemas
+and a thin HTTP-GET + SHA-256-verify fetcher over these contracts. Where a language client does not yet
+exist, the deliverable is the **neutral contract plus a gate** (`GATE-PROV-R`, `GATE-PROV-WASM`,
+`GATE-PROV-NATIVE`) — never a Python shim, and never a new dependency on this package.
+
+Contract gate: `PYTHONPATH=src python scripts/validate_contracts.py` (add
+`--canonical ../nirs4all-ecosystem/docs/contracts/providers` to assert cross-repo byte-identity).
+
 ## Boundaries
 
 - The provider layer is **net-new glue only**; each backing repo keeps its own package + API and stays
   the single source of truth for its domain.
+- **Not a dependency of `nirs4all-core` / `nirs4all-lite` / `dag-ml` / `nirs4all-io`.** Consumers depend on
+  the *contract* (the schemas / served artifacts) and may optionally use this Python client; the arrow
+  never points into those packages from here.
 - No adapter re-implements `nirs4all` / `nirs4all-io` / `nirs4all-methods`. `nirs4all-io` remains the
   dataset-assembly owner; package methods delegate to nirs4all-io and do not assemble packages here.
 - No network calls originate in this layer, and no ecosystem write-back is performed.

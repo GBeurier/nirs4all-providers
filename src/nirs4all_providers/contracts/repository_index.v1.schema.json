@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/GBeurier/nirs4all-ecosystem/schemas/providers/repository_index.v1.schema.json",
+  "title": "nirs4all Repository Catalogue Index v1",
+  "$comment": "The DISCOVERY + FETCHER contract for nirs4all-repository (catalog/index.json, schema_version 1). This static JSON index is served over HTTPS (default https://repository.nirs4all.org) or shipped in the wheel; a language client lists/filters pipelines from `pipelines` and fetches each pipeline's descriptor + recipe by URL, verifying sha256. This is the neutral form behind PipelineProvider.get_pipeline_list()/list_pipelines(). No Python is required to browse or fetch; bridging a recipe to a runnable object (to_nirs4all/to_dagml) is a separate, language-specific concern.",
+  "type": "object",
+  "additionalProperties": true,
+  "required": ["schema_version", "repository", "repository_version", "pipelines"],
+  "properties": {
+    "schema_version": { "type": "integer", "minimum": 1 },
+    "repository": { "type": "string" },
+    "repository_version": { "type": "string" },
+    "base_url": { "type": ["string", "null"] },
+    "count": { "type": ["integer", "null"] },
+    "generated_at": { "type": ["string", "null"] },
+    "pipelines": {
+      "type": "object",
+      "additionalProperties": true,
+      "$comment": "Map of pipeline id -> catalogue entry. Each value conforms to the entry shape below."
+    }
+  },
+  "$defs": {
+    "pipeline_entry": {
+      "$comment": "Shape of each value in `pipelines`. Validated per-entry by a client that iterates the map (this subset schema does not use $ref to keep neutral validators simple).",
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["id", "name", "framework", "kind", "task", "version", "descriptor", "recipe"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "framework": { "type": "string", "enum": ["nirs4all", "dag-ml"] },
+        "kind": { "type": "string", "enum": ["recipe", "fitted"] },
+        "task": { "type": "string" },
+        "version": { "type": "string" },
+        "trust": { "type": ["string", "null"] },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "descriptor": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": ["relpath", "sha256"],
+          "properties": {
+            "relpath": { "type": "string" },
+            "sha256": { "type": "string" },
+            "size_bytes": { "type": ["integer", "null"] },
+            "url": { "type": ["string", "null"] }
+          }
+        },
+        "recipe": {
+          "type": "object",
+          "additionalProperties": true,
+          "required": ["format", "relpath", "sha256"],
+          "properties": {
+            "format": {
+              "type": "string",
+              "enum": ["nirs4all/pipeline-config", "dag-ml/pipeline-dsl", "dag-ml/compiled-artifact"]
+            },
+            "relpath": { "type": "string" },
+            "sha256": { "type": "string" },
+            "size_bytes": { "type": ["integer", "null"] },
+            "url": { "type": ["string", "null"] }
+          }
+        }
+      }
+    }
+  }
+}
