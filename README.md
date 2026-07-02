@@ -58,7 +58,7 @@ sd = datasets.to_spectro_dataset("some_id")  # -> nirs4all SpectroDataset (needs
 | `DatasetProvider` | `datasets` | `nirs4all-datasets` | `list_datasets` · `card` · `get_dataset` · `retrieve_dataset` · `to_spectro_dataset` · `to_dataset_package` · `describe_dataset_package` | local cache (via `get()` / `retrieve()`) |
 | `PipelineProvider` | `repository` | `nirs4all-repository` | `get_pipeline_list` · `list_pipelines` · `card` · `get_pipeline` · `get_bundle` · `verify` | none |
 | `BenchmarkProvider` | `benchmarks` | `nirs4all-benchmarks` | `get_pipeline_list` · `list_pipelines` · `get_pipeline` · `leaderboard` · `get_results` · `planned` · `queue_pipeline_test` | local Arena store (`planned_runs`) |
-| `PaperExportProvider` | `papers` | `nirs4all-papers` | `inspect_bundle` · `load_paper` · `build_methods_section` · `build_repro_page` | local export output only (marker-guarded) |
+| `PaperExportProvider` | `papers` | `nirs4all-papers` | `inspect_bundle` · `load_paper` · `load_paper_bundle` · `build_methods_section` · `build_repro_page` · `export_sidecars` | local export output only (marker-guarded) |
 
 Every adapter also exposes the contract trio: `provider_id`, `version()`, `health()`, `capabilities()`.
 

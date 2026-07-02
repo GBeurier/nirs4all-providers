@@ -175,8 +175,28 @@ def test_conformance_papers_real_api() -> None:
     from nirs4all_papers.bundle import read_bundle
     from nirs4all_papers.model import load_catalog, load_paper
     from nirs4all_papers.provenance import citation_cff, paper_bibtex
+    from nirs4all_papers.provider import (
+        build_methods_section,
+        build_repro_page,
+        export_sidecars,
+        inspect_bundle,
+        list_papers,
+        load_paper_bundle,
+        provider_capabilities,
+    )
     from nirs4all_papers.site import build_site
 
+    for fn in (
+        provider_capabilities,
+        list_papers,
+        load_paper_bundle,
+        inspect_bundle,
+        build_methods_section,
+        build_repro_page,
+        export_sidecars,
+    ):
+        assert callable(fn)
     for fn in (read_bundle, load_paper, load_catalog, build_bibliography, citation_cff, paper_bibtex, build_site):
         assert callable(fn)
+    assert "io_wasm" in inspect.signature(build_repro_page).parameters
     assert "io_wasm" in inspect.signature(build_site).parameters
