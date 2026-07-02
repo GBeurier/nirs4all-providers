@@ -33,6 +33,7 @@ def _fakes() -> dict[str, dict[str, object]]:
             "citation_cff": lambda view: f"cff:{view['paper']}",
             "paper_bibtex": lambda view: f"@misc{{{view['paper']}}}",
         },
+        "nirs4all_papers.provider": {},
         "nirs4all_papers.site": {"build_site": _build_site},
     }
 
@@ -46,6 +47,8 @@ def _facade_fakes(calls: list[tuple[str, object]]) -> dict[str, dict[str, object
                 "load_paper_bundle": "Load a paper bundle.",
                 "inspect_bundle": "Inspect a bundle.",
                 "build_methods_section": "Build methods text.",
+                "citation": "Render a citation string.",
+                "bibtex": "Render a BibTeX string.",
                 "build_repro_page": "Build a local reproduction page.",
                 "export_sidecars": "Export local sidecars.",
             },
@@ -72,6 +75,14 @@ def _facade_fakes(calls: list[tuple[str, object]]) -> dict[str, dict[str, object
         calls.append(("build_methods_section", tuple(method_ids)))
         return {"facade_refs": method_ids}
 
+    def citation(paper_dir: str) -> str:
+        calls.append(("citation", paper_dir))
+        return f"facade-cff:{paper_dir}"
+
+    def bibtex(paper_dir: str) -> str:
+        calls.append(("bibtex", paper_dir))
+        return f"@misc{{facade:{paper_dir}}}"
+
     def build_repro_page(root: str, out: str, *, io_wasm: str | None = None) -> dict[str, object]:
         calls.append(("build_repro_page", (root, out, io_wasm)))
         return {"facade_root": root, "out": out, "io_wasm": io_wasm}
@@ -88,6 +99,8 @@ def _facade_fakes(calls: list[tuple[str, object]]) -> dict[str, dict[str, object
             "inspect_bundle": inspect_bundle,
             "load_paper_bundle": load_paper_bundle,
             "build_methods_section": build_methods_section,
+            "citation": citation,
+            "bibtex": bibtex,
             "build_repro_page": build_repro_page,
             "export_sidecars": export_sidecars,
         },
@@ -139,6 +152,8 @@ def test_facade_delegation_when_available() -> None:
         assert provider.load_paper_bundle("/paper-dir") == {"facade_paper": "/paper-dir"}
         assert provider.load_paper("/paper-dir") == {"facade_paper": "/paper-dir"}
         assert provider.build_methods_section(["pls", "snv"]) == {"facade_refs": ["pls", "snv"]}
+        assert provider.citation("/paper-dir") == "facade-cff:/paper-dir"
+        assert provider.bibtex("/paper-dir") == "@misc{facade:/paper-dir}"
         assert provider.build_repro_page("/root", "/out", io_wasm="/wasm") == {
             "facade_root": "/root",
             "out": "/out",
@@ -156,6 +171,8 @@ def test_facade_delegation_when_available() -> None:
         ("load_paper_bundle", "/paper-dir"),
         ("load_paper_bundle", "/paper-dir"),
         ("build_methods_section", ("pls", "snv")),
+        ("citation", "/paper-dir"),
+        ("bibtex", "/paper-dir"),
         ("build_repro_page", ("/root", "/out", "/wasm")),
         ("export_sidecars", ("/paper-dir", "/out")),
     ]

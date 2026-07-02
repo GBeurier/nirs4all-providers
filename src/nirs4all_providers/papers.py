@@ -175,6 +175,10 @@ class PaperExportProvider(_BaseProvider):
 
     def citation(self, paper_dir: str) -> str:
         """Return a paper's ``CITATION.cff`` text (delegates to ``provenance.citation_cff``); no file write."""
+        facade_fn = self._facade_function("citation")
+        if facade_fn is not None:
+            return str(facade_fn(paper_dir))
+
         self._require()
         from nirs4all_papers.model import load_paper
         from nirs4all_papers.provenance import citation_cff
@@ -184,6 +188,10 @@ class PaperExportProvider(_BaseProvider):
 
     def bibtex(self, paper_dir: str) -> str:
         """Return a paper's BibTeX entry (delegates to ``provenance.paper_bibtex``); no file write."""
+        facade_fn = self._facade_function("bibtex")
+        if facade_fn is not None:
+            return str(facade_fn(paper_dir))
+
         self._require()
         from nirs4all_papers.model import load_paper
         from nirs4all_papers.provenance import paper_bibtex

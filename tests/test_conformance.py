@@ -176,13 +176,18 @@ def test_conformance_papers_real_api() -> None:
     from nirs4all_papers.model import load_catalog, load_paper
     from nirs4all_papers.provenance import citation_cff, paper_bibtex
     from nirs4all_papers.provider import (
+        bibtex,
         build_methods_section,
         build_repro_page,
+        citation,
         export_sidecars,
         inspect_bundle,
         list_papers,
         load_paper_bundle,
         provider_capabilities,
+    )
+    from nirs4all_papers.provider import (
+        load_paper as provider_load_paper,
     )
     from nirs4all_papers.site import build_site
 
@@ -190,8 +195,11 @@ def test_conformance_papers_real_api() -> None:
         provider_capabilities,
         list_papers,
         load_paper_bundle,
+        provider_load_paper,
         inspect_bundle,
         build_methods_section,
+        citation,
+        bibtex,
         build_repro_page,
         export_sidecars,
     ):
