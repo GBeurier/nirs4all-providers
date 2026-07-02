@@ -122,8 +122,10 @@ and a thin HTTP-GET + SHA-256-verify fetcher over these contracts. Where a langu
 exist, the deliverable is the **neutral contract plus a gate** (`GATE-PROV-R`, `GATE-PROV-WASM`,
 `GATE-PROV-NATIVE`) — never a Python shim, and never a new dependency on this package.
 
-Contract gate: `PYTHONPATH=src python scripts/validate_contracts.py` (add
-`--canonical ../nirs4all-ecosystem/docs/contracts/providers` to assert cross-repo byte-identity).
+Contract gate: `PYTHONPATH=src python scripts/validate_contracts.py --canonical
+../nirs4all-ecosystem/docs/contracts/providers`. The CI/release gate requires
+this canonical byte-identity check; set `NIRS4ALL_PROVIDERS_CANONICAL_CONTRACTS`
+only when the ecosystem checkout lives somewhere else.
 
 ## Boundaries
 

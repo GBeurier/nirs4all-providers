@@ -20,6 +20,13 @@ jobs:
       - name: Check out
         uses: actions/checkout@v4
 
+      - name: Check out canonical ecosystem contracts
+        uses: actions/checkout@v4
+        with:
+          repository: GBeurier/nirs4all-ecosystem
+          ref: rc/v1-full-refactor
+          path: nirs4all-ecosystem
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:

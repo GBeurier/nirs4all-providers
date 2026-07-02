@@ -26,6 +26,24 @@ def _source_tree_env() -> dict[str, str]:
     return env
 
 
+def _canonical_contracts_dir() -> Path:
+    """Resolve the ecosystem canonical provider contracts directory."""
+    configured = os.environ.get("NIRS4ALL_PROVIDERS_CANONICAL_CONTRACTS")
+    candidates = [
+        Path(configured).expanduser() if configured else None,
+        ROOT / "nirs4all-ecosystem" / "docs" / "contracts" / "providers",
+        ROOT.parent / "nirs4all-ecosystem" / "docs" / "contracts" / "providers",
+        ROOT.parent / "RC-v1-ecosystem" / "docs" / "contracts" / "providers",
+    ]
+    for candidate in candidates:
+        if candidate and candidate.is_dir():
+            return candidate
+    raise FileNotFoundError(
+        "canonical provider contracts not found; set "
+        "NIRS4ALL_PROVIDERS_CANONICAL_CONTRACTS or check out nirs4all-ecosystem"
+    )
+
+
 def _run(step: GateStep) -> int:
     print(f"==> {step.name}", flush=True)
     completed = subprocess.run(step.command, cwd=ROOT, env=step.env, check=False)
@@ -37,12 +55,17 @@ def _run(step: GateStep) -> int:
 def main() -> int:
     python = sys.executable
     source_env = _source_tree_env()
+    canonical_contracts = _canonical_contracts_dir()
     steps = (
         GateStep("ruff", (python, "-m", "ruff", "check", ".")),
         GateStep("typecheck", (python, "-m", "mypy", "src/nirs4all_providers")),
         GateStep("tests", (python, "-m", "pytest", "-q", "tests", "--ignore=tests/test_conformance.py"), source_env),
         GateStep("conformance", (python, "-m", "pytest", "-q", "tests/test_conformance.py"), source_env),
-        GateStep("neutral contracts", (python, "scripts/validate_contracts.py"), source_env),
+        GateStep(
+            "neutral contracts",
+            (python, "scripts/validate_contracts.py", "--canonical", str(canonical_contracts)),
+            source_env,
+        ),
     )
 
     failures = [step.name for step in steps if _run(step) != 0]
