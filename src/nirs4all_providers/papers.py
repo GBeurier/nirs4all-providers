@@ -100,7 +100,6 @@ class PaperExportProvider(_BaseProvider):
     def _coerce_capabilities(self, raw: Any) -> Capabilities:
         if isinstance(raw, Capabilities):
             raw_serves: Any = raw.serves
-            executes = raw.executes
             writes = raw.writes
             portability = raw.portability
         elif isinstance(raw, dict):
@@ -108,7 +107,6 @@ class PaperExportProvider(_BaseProvider):
             if raw_serves is None:
                 verbs = raw.get("verbs", ())
                 raw_serves = verbs.keys() if isinstance(verbs, Mapping) else verbs
-            executes = raw.get("executes", False)
             writes = raw.get("writes", WriteAccess.LOCAL_OUTPUT)
             portability = raw.get("portability")
         else:
@@ -116,16 +114,15 @@ class PaperExportProvider(_BaseProvider):
             if raw_serves is None:
                 verbs = getattr(raw, "verbs", ())
                 raw_serves = verbs.keys() if isinstance(verbs, Mapping) else verbs
-            executes = getattr(raw, "executes", False)
             writes = getattr(raw, "writes", WriteAccess.LOCAL_OUTPUT)
             portability = getattr(raw, "portability", None)
         if not isinstance(writes, WriteAccess):
             writes = WriteAccess(str(writes).lower().replace("_", "-"))
         return Capabilities(
             serves=_adapter_serves(raw_serves),
-            executes=bool(executes),
+            executes=False,
             writes=writes,
-            portability=None if portability is None else str(portability),
+            portability=_default_capabilities().portability if portability is None else str(portability),
         )
 
     def list_papers(self, root: str) -> Any:

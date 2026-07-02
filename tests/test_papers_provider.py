@@ -161,6 +161,27 @@ def test_facade_delegation_when_available() -> None:
     ]
 
 
+def test_facade_capabilities_are_clamped_to_provider_contract() -> None:
+    def provider_capabilities() -> dict[str, object]:
+        return {
+            "verbs": {"list_papers": "List paper exports."},
+            "executes": True,
+            "writes": "local_output",
+        }
+
+    with fake_modules(
+        {
+            "nirs4all_papers": {"__version__": "0.3.0"},
+            "nirs4all_papers.provider": {"provider_capabilities": provider_capabilities},
+        }
+    ):
+        caps = PaperExportProvider().capabilities()
+
+    assert caps.executes is False
+    assert caps.writes is WriteAccess.LOCAL_OUTPUT
+    assert "in-browser replay is approximate" in (caps.portability or "")
+
+
 def test_version_health_and_capabilities() -> None:
     with fake_modules(_fakes()):
         provider = PaperExportProvider()
