@@ -140,6 +140,7 @@ Contract gate: `PYTHONPATH=src python scripts/validate_contracts.py` (add
 ## Develop
 
 ```bash
+python scripts/ci_gate.py  # ruff + mypy + hermetic tests + conformance + neutral contracts
 ruff check .       # lint
 mypy src           # types
 pytest -q          # tests (hermetic: fakes, no network, no real backing required)

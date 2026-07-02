@@ -1,0 +1,33 @@
+name: Providers CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - "rc/**"
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    name: ruff / typecheck / tests / conformance
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install
+        run: python -m pip install -e ".[dev]"
+
+      - name: Run providers gate
+        run: python scripts/ci_gate.py
