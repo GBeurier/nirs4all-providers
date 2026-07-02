@@ -43,12 +43,9 @@ def _facade_fakes(calls: list[tuple[str, object]]) -> dict[str, dict[str, object
         return {
             "verbs": {
                 "list_papers": "List paper exports.",
-                "inspect_bundle": "Inspect a bundle.",
-                "load_paper": "Compatibility paper loader.",
                 "load_paper_bundle": "Load a paper bundle.",
+                "inspect_bundle": "Inspect a bundle.",
                 "build_methods_section": "Build methods text.",
-                "citation": "Build citation text.",
-                "bibtex": "Build BibTeX text.",
                 "build_repro_page": "Build a local reproduction page.",
                 "export_sidecars": "Export local sidecars.",
             },
@@ -136,6 +133,7 @@ def test_facade_delegation_when_available() -> None:
             writes=WriteAccess.LOCAL_OUTPUT,
             portability="facade export plugin",
         )
+        assert {"load_paper", "citation", "bibtex", "load_paper_bundle", "export_sidecars"} <= set(caps.serves)
         assert provider.list_papers("/root") == {"facade_root": "/root"}
         assert provider.inspect_bundle("/x.n4a") == {"facade_bundle": "/x.n4a"}
         assert provider.load_paper_bundle("/paper-dir") == {"facade_paper": "/paper-dir"}

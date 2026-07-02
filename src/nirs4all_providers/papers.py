@@ -45,6 +45,18 @@ def _default_capabilities() -> Capabilities:
     )
 
 
+def _adapter_serves(serves: Any) -> tuple[str, ...]:
+    """Return adapter-level serves: compatibility surface first, facade-only additions after."""
+    merged = list(_default_capabilities().serves)
+    seen = set(merged)
+    for name in serves:
+        serve = str(name)
+        if serve not in seen:
+            merged.append(serve)
+            seen.add(serve)
+    return tuple(merged)
+
+
 class PaperExportProvider(_BaseProvider):
     """Thin read/build client over the ``nirs4all-papers`` reproduction publisher."""
 
@@ -87,27 +99,30 @@ class PaperExportProvider(_BaseProvider):
 
     def _coerce_capabilities(self, raw: Any) -> Capabilities:
         if isinstance(raw, Capabilities):
-            return raw
-        if isinstance(raw, dict):
-            serves = raw.get("serves")
-            if serves is None:
+            raw_serves: Any = raw.serves
+            executes = raw.executes
+            writes = raw.writes
+            portability = raw.portability
+        elif isinstance(raw, dict):
+            raw_serves = raw.get("serves")
+            if raw_serves is None:
                 verbs = raw.get("verbs", ())
-                serves = verbs.keys() if isinstance(verbs, Mapping) else verbs
+                raw_serves = verbs.keys() if isinstance(verbs, Mapping) else verbs
             executes = raw.get("executes", False)
             writes = raw.get("writes", WriteAccess.LOCAL_OUTPUT)
             portability = raw.get("portability")
         else:
-            serves = getattr(raw, "serves", None)
-            if serves is None:
+            raw_serves = getattr(raw, "serves", None)
+            if raw_serves is None:
                 verbs = getattr(raw, "verbs", ())
-                serves = verbs.keys() if isinstance(verbs, Mapping) else verbs
+                raw_serves = verbs.keys() if isinstance(verbs, Mapping) else verbs
             executes = getattr(raw, "executes", False)
             writes = getattr(raw, "writes", WriteAccess.LOCAL_OUTPUT)
             portability = getattr(raw, "portability", None)
         if not isinstance(writes, WriteAccess):
             writes = WriteAccess(str(writes).lower().replace("_", "-"))
         return Capabilities(
-            serves=tuple(str(name) for name in serves),
+            serves=_adapter_serves(raw_serves),
             executes=bool(executes),
             writes=writes,
             portability=None if portability is None else str(portability),
