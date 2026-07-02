@@ -62,7 +62,10 @@ class DatasetProvider(_BaseProvider):
             ),
             executes=False,
             writes=WriteAccess.LOCAL_CACHE,
-            portability="served datasets reference CAP-002/CAP-004 portability levels",
+            portability=(
+                "portable dataset consumers use catalog/index.json + n4ds bindings; "
+                "no Python provider dependency"
+            ),
         )
 
     def _reachable(self) -> tuple[bool | None, str | None]:

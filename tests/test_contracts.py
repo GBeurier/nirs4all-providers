@@ -87,6 +87,17 @@ def test_descriptor_round_trips_capabilities_when_backing_absent() -> None:
             assert descriptor["capabilities"]["serves"] == list(capabilities.serves)
 
 
+def test_dataset_provider_descriptor_names_the_non_python_contract() -> None:
+    schema = load_contract_schema("provider_descriptor.v1")
+    with hidden_modules(*_ALL_BACKINGS):
+        descriptor = {d["provider_id"]: d for d in all_provider_descriptors()}["datasets"]
+    assert iter_contract_errors(descriptor, schema) == []
+    portability = descriptor["capabilities"]["portability"] or ""
+    assert "catalog/index.json" in portability
+    assert "n4ds bindings" in portability
+    assert "no Python provider dependency" in portability
+
+
 def test_live_descriptor_reflects_available_backing() -> None:
     schema = load_contract_schema("provider_descriptor.v1")
     fake = {"nirs4all_datasets": {"__version__": "9.9.9", "list": lambda root, **f: []}}

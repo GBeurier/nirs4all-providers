@@ -20,6 +20,6 @@
     ],
     "executes": false,
     "writes": "local-cache",
-    "portability": "served datasets reference CAP-002/CAP-004 portability levels"
+    "portability": "portable dataset consumers use catalog/index.json + n4ds bindings; no Python provider dependency"
   }
 }

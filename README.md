@@ -117,6 +117,12 @@ schema = providers.load_contract_schema("dataset_card.v2")
 providers.iter_contract_errors(providers.load_contract_fixture("dataset_card.example"), schema)  # -> [] when valid
 ```
 
+For datasets specifically, the non-Python provider is the `nirs4all-datasets` acquisition contract:
+`catalog/index.json` is served/bundled as JSON, `n4ds_resolve` returns the tier-sanitized descriptor plus
+the SHA-256-pinned file list, and R/WASM/Rust hosts fetch/verify those files and read canonical Parquet
+with native tooling. This package may emit a Python `provider_descriptor.v1`, but R/WASM/Rust do not link
+to `nirs4all_providers` to consume datasets.
+
 The R and WASM story is explicit in the ecosystem `docs/contracts/providers/README.md`: port the schemas
 and a thin HTTP-GET + SHA-256-verify fetcher over these contracts. Where a language client does not yet
 exist, the deliverable is the **neutral contract plus a gate** (`GATE-PROV-R`, `GATE-PROV-WASM`,
