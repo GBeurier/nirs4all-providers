@@ -153,7 +153,8 @@ def test_real_dataset_card_shape_conforms_if_present() -> None:
     import pathlib
 
     here = pathlib.Path(__file__).resolve()
-    card_path = here.parents[3] / "nirs4all-datasets" / "datasets" / "ecostress_vegetation_all_550points" / "card.json"
+    workspace = here.parents[2]
+    card_path = workspace / "nirs4all-datasets" / "datasets" / "ecostress_vegetation_all_550points" / "card.json"
     if not card_path.is_file():
         pytest.skip("nirs4all-datasets sibling checkout not present")
     schema = load_contract_schema("dataset_card.v2")

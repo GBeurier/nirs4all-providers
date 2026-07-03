@@ -40,7 +40,7 @@ dependencies = []
 datasets = ["nirs4all-datasets>=0.3.2"]
 repository = ["nirs4all-repository>=0.1.2"]
 benchmarks = ["nirs4all-benchmarks>=0.1.2"]
-papers = ["nirs4all-papers>=0.1.0"]
+papers = ["nirs4all-papers>=0.2.1"]
 # Optional bridge backing for the soft `DatasetProvider.to_dataset_package` pass-through. Soft-imported
 # like every other extra; absent => the bridge raises a clear ProviderUnavailable, never an ImportError.
 io = ["nirs4all-io>=0.1.5"]
@@ -51,7 +51,7 @@ all = [
     "nirs4all-datasets>=0.3.2",
     "nirs4all-repository>=0.1.2",
     "nirs4all-benchmarks>=0.1.2",
-    "nirs4all-papers>=0.1.0",
+    "nirs4all-papers>=0.2.1",
     "nirs4all-io>=0.1.5",
 ]
 dev = [
