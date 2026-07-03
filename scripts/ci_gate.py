@@ -57,7 +57,7 @@ def main() -> int:
     source_env = _source_tree_env()
     canonical_contracts = _canonical_contracts_dir()
     steps = (
-        GateStep("ruff", (python, "-m", "ruff", "check", ".")),
+        GateStep("ruff", (python, "-m", "ruff", "check", "src", "tests", "scripts")),
         GateStep("typecheck", (python, "-m", "mypy", "src/nirs4all_providers")),
         GateStep("tests", (python, "-m", "pytest", "-q", "tests", "--ignore=tests/test_conformance.py"), source_env),
         GateStep("conformance", (python, "-m", "pytest", "-q", "tests/test_conformance.py"), source_env),

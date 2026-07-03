@@ -84,6 +84,10 @@ version = { attr = "nirs4all_providers.__version__" }
 line-length = 120
 target-version = "py311"
 src = ["src", "tests"]
+# CI checks out GBeurier/nirs4all-ecosystem into ./nirs4all-ecosystem for the canonical
+# contracts gate (see scripts/ci_gate.py). That sibling repo is not ours to lint, so keep
+# `ruff check .` scoped to this package and off the vendored checkout.
+extend-exclude = ["nirs4all-ecosystem"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "C4", "SIM"]
