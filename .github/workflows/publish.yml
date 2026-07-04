@@ -57,6 +57,12 @@ jobs:
           ref: main
           path: nirs4all-formats
 
+      - uses: actions/checkout@v4
+        with:
+          repository: GBeurier/nirs4all-io
+          ref: main
+          path: nirs4all-io
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
