@@ -137,7 +137,7 @@ only when the ecosystem checkout lives somewhere else.
 
 - The provider layer is **net-new glue only**; each backing repo keeps its own package + API and stays
   the single source of truth for its domain.
-- **Not a dependency of `nirs4all-core` / `nirs4all-lite` / `dag-ml` / `nirs4all-io`.** Consumers depend on
+- **Not a dependency of `nirs4all-core` / `dag-ml` / `nirs4all-io`.** Consumers depend on
   the *contract* (the schemas / served artifacts) and may optionally use this Python client; the arrow
   never points into those packages from here.
 - No adapter re-implements `nirs4all` / `nirs4all-io` / `nirs4all-methods`. `nirs4all-io` remains the
