@@ -17,14 +17,19 @@ over methods/provenance/UI helpers, not as a write-side repository.
 
 ## Install
 
+PyPI publishing for `nirs4all-providers` is still pending. Until the package is published,
+install from a source checkout:
+
 ```bash
-pip install nirs4all-providers                 # base: contracts + registry only (pure stdlib)
-pip install "nirs4all-providers[datasets]"     # + nirs4all-datasets
-pip install "nirs4all-providers[repository]"   # + nirs4all-repository
-pip install "nirs4all-providers[benchmarks]"   # + nirs4all-benchmarks
-pip install "nirs4all-providers[papers]"       # + nirs4all-papers
-pip install "nirs4all-providers[io]"           # + optional nirs4all-io package bridge
-pip install "nirs4all-providers[all]"          # all five optional backings
+git clone https://github.com/GBeurier/nirs4all-providers.git
+cd nirs4all-providers
+python -m pip install .              # base: contracts + registry only (pure stdlib)
+python -m pip install ".[datasets]"  # + nirs4all-datasets
+python -m pip install ".[repository]" # + nirs4all-repository
+python -m pip install ".[benchmarks]" # + nirs4all-benchmarks
+python -m pip install ".[papers]"    # + nirs4all-papers
+python -m pip install ".[io]"        # + optional nirs4all-io package bridge
+python -m pip install ".[all]"       # all five optional backings
 ```
 
 Each backing is **optional** and soft-imported; install only what you consume. The base install
