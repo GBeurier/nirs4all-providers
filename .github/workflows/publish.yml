@@ -18,12 +18,76 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Check out canonical ecosystem contracts
+        uses: actions/checkout@v4
+        with:
+          repository: GBeurier/nirs4all-ecosystem
+          ref: rc/v1-full-refactor
+          path: nirs4all-ecosystem
+
+      - name: Check out provider backings
+        uses: actions/checkout@v4
+        with:
+          repository: GBeurier/nirs4all-datasets
+          ref: main
+          path: nirs4all-datasets
+
+      - uses: actions/checkout@v4
+        with:
+          repository: GBeurier/nirs4all-repository
+          ref: main
+          path: nirs4all-repository
+
+      - uses: actions/checkout@v4
+        with:
+          repository: GBeurier/nirs4all-benchmarks
+          ref: main
+          path: nirs4all-benchmarks
+
+      - uses: actions/checkout@v4
+        with:
+          repository: GBeurier/nirs4all-papers
+          ref: main
+          path: nirs4all-papers
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: pip
+
+      - name: Install release gate dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+          python -m pip install \
+            -e ./nirs4all-datasets \
+            -e ./nirs4all-repository \
+            -e ./nirs4all-benchmarks \
+            -e ./nirs4all-papers \
+            "nirs4all-io>=0.1.5"
+
+      - name: Verify release tag matches package version
+        if: github.event_name == 'release'
+        run: |
+          python - <<'PY'
+          import os
+          import nirs4all_providers
+
+          tag = os.environ["GITHUB_REF_NAME"]
+          expected = f"v{nirs4all_providers.__version__}"
+          if tag != expected:
+              raise SystemExit(f"release tag {tag!r} does not match package version {expected!r}")
+          PY
+
+      - name: Run providers CI/release gate
+        run: python scripts/ci_gate.py
+
+      - name: Run local backing release gate
+        run: python -m nirs4all_providers.local_release_gate --workspace-root "$GITHUB_WORKSPACE" --json
+
       - name: Build sdist + wheel
         run: |
-          python -m pip install --upgrade build
           python -m build
       - name: Smoke-check the wheel
         run: |
