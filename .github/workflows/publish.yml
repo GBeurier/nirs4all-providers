@@ -93,6 +93,8 @@ jobs:
           PY
 
       - name: Run providers CI/release gate
+        env:
+          N4A_WORKSPACE_ROOT: ${{ github.workspace }}
         run: python scripts/ci_gate.py
 
       - name: Run local backing release gate
