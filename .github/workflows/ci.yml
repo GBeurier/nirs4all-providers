@@ -27,6 +27,27 @@ jobs:
           ref: rc/v1-full-refactor
           path: nirs4all-ecosystem
 
+      - name: Check out dataset backing
+        uses: actions/checkout@v4
+        with:
+          repository: GBeurier/nirs4all-datasets
+          ref: main
+          path: nirs4all-datasets
+
+      - name: Check out IO backing
+        uses: actions/checkout@v4
+        with:
+          repository: GBeurier/nirs4all-io
+          ref: main
+          path: nirs4all-io
+
+      - name: Check out repository backing
+        uses: actions/checkout@v4
+        with:
+          repository: GBeurier/nirs4all-repository
+          ref: main
+          path: nirs4all-repository
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -36,5 +57,14 @@ jobs:
       - name: Install
         run: python -m pip install -e ".[dev]"
 
+      - name: Install provider backing dependencies
+        run: |
+          python -m pip install \
+            "nirs4all-datasets>=0.3.2" \
+            "nirs4all-io>=0.1.5" \
+            "nirs4all-repository>=0.1.2"
+
       - name: Run providers gate
+        env:
+          N4A_WORKSPACE_ROOT: ${{ github.workspace }}
         run: python scripts/ci_gate.py
