@@ -199,4 +199,11 @@ the nirs4all-org pipeline and mirrored here, not hand-authored. See
 ## License
 
 Dual-licensed `CeCILL-2.1 OR AGPL-3.0-or-later`, consistent with the nirs4all ecosystem policy. See
-[`LICENSE`](./LICENSE).
+[`LICENSE`](./LICENSE), [`LICENSING.md`](./LICENSING.md), and the full texts under [`LICENSES/`](./LICENSES).
+
+## Community
+
+- Contribution guide: [`CONTRIBUTING.md`](./CONTRIBUTING.md)
+- Code of conduct: [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md)
+- Security policy: [`SECURITY.md`](./SECURITY.md)
+- Citation metadata: [`CITATION.cff`](./CITATION.cff)

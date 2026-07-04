@@ -14,13 +14,13 @@ maintainers = [
     { name = "Gregory Beurier", email = "gregory.beurier@cirad.fr" },
 ]
 readme = "README.md"
-license = { text = "CeCILL-2.1 OR AGPL-3.0-or-later" }
+license = "CeCILL-2.1 OR AGPL-3.0-or-later"
+license-files = ["LICENSE", "LICENSES/*.txt"]
 keywords = ["nirs4all", "providers", "plugins", "datasets", "repository", "benchmarks", "papers"]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "Intended Audience :: Science/Research",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
