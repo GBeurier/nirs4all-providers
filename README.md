@@ -24,7 +24,7 @@ pip install "nirs4all-providers[repository]"   # + nirs4all-repository
 pip install "nirs4all-providers[benchmarks]"   # + nirs4all-benchmarks
 pip install "nirs4all-providers[papers]"       # + nirs4all-papers
 pip install "nirs4all-providers[io]"           # + optional nirs4all-io package bridge
-pip install "nirs4all-providers[all]"          # all four backings
+pip install "nirs4all-providers[all]"          # all five optional backings
 ```
 
 Each backing is **optional** and soft-imported; install only what you consume. The base install
@@ -40,7 +40,7 @@ providers.available_providers() # the subset whose extra is installed
 
 # Health never raises, even when the extra is absent:
 providers.provider_health("datasets")
-# Health(provider_id='datasets', available=True, reachable=True, version='0.3.0', detail=None)
+# Health(provider_id='datasets', available=True, reachable=True, version='0.3.2', detail=None)
 
 # Get a typed adapter (raises ProviderUnavailable with a clear pip hint if the extra is missing):
 datasets = providers.get_provider("datasets", root="/path/to/catalogue")
