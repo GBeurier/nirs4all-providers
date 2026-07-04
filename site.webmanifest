@@ -1,0 +1,21 @@
+{
+  "name": "nirs4all-providers",
+  "short_name": "Providers",
+  "description": "Provider adapters for nirs4all datasets, repositories, benchmarks, and papers.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f7fbf8",
+  "theme_color": "#256d63",
+  "icons": [
+    {
+      "src": "assets/brand/icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/brand/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>nirs4all-providers</title>
+  <meta name="description" content="Provider adapters for nirs4all datasets, repositories, benchmarks, and papers.">
+  <link rel="canonical" href="https://gbeurier.github.io/nirs4all-providers/">
+  <link rel="icon" href="assets/brand/favicon.ico">
+  <link rel="manifest" href="site.webmanifest">
+  <meta name="theme-color" content="#256d63">
+  <meta property="og:title" content="nirs4all-providers">
+  <meta property="og:description" content="Provider adapters for the nirs4all V1 ecosystem.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://gbeurier.github.io/nirs4all-providers/">
+  <meta property="og:image" content="https://gbeurier.github.io/nirs4all-providers/assets/brand/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172321;
+      --muted: #50635f;
+      --line: #d8e5df;
+      --paper: #f7fbf8;
+      --white: #ffffff;
+      --green: #256d63;
+      --blue: #2f5f9e;
+      --amber: #a5671d;
+      --shadow: 0 18px 45px rgba(22, 42, 38, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--ink);
+      background:
+        linear-gradient(rgba(37, 109, 99, 0.055) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(47, 95, 158, 0.045) 1px, transparent 1px),
+        var(--paper);
+      background-size: 38px 38px;
+      line-height: 1.5;
+    }
+
+    a { color: inherit; }
+
+    .wrap {
+      width: min(1120px, calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    header {
+      padding: 24px 0;
+      border-bottom: 1px solid rgba(216, 229, 223, 0.9);
+      background: rgba(247, 251, 248, 0.86);
+      backdrop-filter: blur(14px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .brand img {
+      width: min(280px, 72vw);
+      height: auto;
+      display: block;
+    }
+
+    .links {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .links a, .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 38px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      text-decoration: none;
+      background: rgba(255, 255, 255, 0.76);
+      color: var(--ink);
+      font-size: 0.92rem;
+      font-weight: 650;
+      white-space: nowrap;
+    }
+
+    .links a:hover, .button:hover {
+      border-color: rgba(37, 109, 99, 0.55);
+      box-shadow: 0 8px 22px rgba(37, 109, 99, 0.1);
+    }
+
+    main { display: block; }
+
+    .hero {
+      min-height: 76vh;
+      padding: clamp(64px, 9vw, 112px) 0 56px;
+      display: grid;
+      align-items: center;
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+      gap: clamp(32px, 7vw, 88px);
+      align-items: center;
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 780px;
+      font-size: clamp(3rem, 8vw, 6.7rem);
+      line-height: 0.95;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      margin: 28px 0 0;
+      max-width: 680px;
+      color: var(--muted);
+      font-size: clamp(1.08rem, 2vw, 1.34rem);
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 34px;
+    }
+
+    .button.primary {
+      background: var(--green);
+      border-color: var(--green);
+      color: white;
+    }
+
+    .stack {
+      background: rgba(255, 255, 255, 0.86);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      border-radius: 8px;
+      padding: 20px;
+    }
+
+    .stack h2 {
+      margin: 0 0 16px;
+      font-size: 1.05rem;
+      letter-spacing: 0;
+    }
+
+    .flow {
+      display: grid;
+      gap: 10px;
+    }
+
+    .flow div {
+      display: grid;
+      grid-template-columns: 122px 1fr;
+      gap: 14px;
+      padding: 12px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .flow div:first-child { border-top: 0; }
+
+    .flow strong {
+      color: var(--green);
+      font-size: 0.9rem;
+    }
+
+    .flow span {
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    section.band {
+      padding: 64px 0;
+      border-top: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.58);
+    }
+
+    .section-title {
+      margin: 0 0 24px;
+      font-size: clamp(1.6rem, 3vw, 2.4rem);
+      letter-spacing: 0;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .tile {
+      min-height: 172px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--white);
+    }
+
+    .tile h3 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+      color: var(--ink);
+    }
+
+    .tile p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    .code {
+      margin: 0;
+      padding: 18px;
+      overflow: auto;
+      border-radius: 8px;
+      background: #14211f;
+      color: #dff6ef;
+      font: 0.95rem/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    .accent-green { border-top: 4px solid var(--green); }
+    .accent-blue { border-top: 4px solid var(--blue); }
+    .accent-amber { border-top: 4px solid var(--amber); }
+
+    footer {
+      padding: 34px 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    @media (max-width: 860px) {
+      header { position: static; }
+      nav, .hero-grid { grid-template-columns: 1fr; }
+      nav { align-items: flex-start; flex-direction: column; }
+      .links { justify-content: flex-start; }
+      .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .hero { min-height: auto; }
+    }
+
+    @media (max-width: 560px) {
+      .wrap { width: min(100% - 28px, 1120px); }
+      .grid { grid-template-columns: 1fr; }
+      .flow div { grid-template-columns: 1fr; }
+      .links a, .button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav class="wrap" aria-label="Primary">
+      <a class="brand" href="./" aria-label="nirs4all-providers home">
+        <img src="assets/brand/horizontal.svg" alt="nirs4all-providers">
+      </a>
+      <div class="links">
+        <a href="https://github.com/GBeurier/nirs4all-providers">GitHub</a>
+        <a href="https://pypi.org/project/nirs4all-providers/">PyPI</a>
+        <a href="https://nirs4all.org/">nirs4all.org</a>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="wrap hero-grid">
+        <div>
+          <h1>Provider contracts for NIRS workflows.</h1>
+          <p class="lead">A typed adapter layer that lets core tools discover datasets, pipeline repositories, benchmark arenas, and reproducible paper exports without taking ownership of those projects.</p>
+          <div class="actions">
+            <a class="button primary" href="https://github.com/GBeurier/nirs4all-providers">View source</a>
+            <a class="button" href="#install">Install</a>
+          </div>
+        </div>
+        <aside class="stack" aria-label="Provider flow">
+          <h2>Provider boundary</h2>
+          <div class="flow">
+            <div><strong>datasets</strong><span>Expose catalog cards and loadable references from nirs4all-datasets and nirs4all-io.</span></div>
+            <div><strong>repository</strong><span>Expose versioned pipeline descriptors without fitting or mutating results.</span></div>
+            <div><strong>benchmarks</strong><span>Expose arena metadata, score ledgers, and reproducible comparison inputs.</span></div>
+            <div><strong>papers</strong><span>Expose export descriptors for reproducible paper artifacts.</span></div>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <section class="band" id="contracts">
+      <div class="wrap">
+        <h2 class="section-title">Four provider surfaces</h2>
+        <div class="grid">
+          <article class="tile accent-green">
+            <h3>Dataset provider</h3>
+            <p>Normalizes reference dataset discovery while keeping file parsing and assembly inside the owning IO packages.</p>
+          </article>
+          <article class="tile accent-blue">
+            <h3>Pipeline provider</h3>
+            <p>Lists and resolves reusable pipeline descriptors for core, Web, R, and other language bindings.</p>
+          </article>
+          <article class="tile accent-amber">
+            <h3>Benchmark provider</h3>
+            <p>Connects validated run exports to benchmark arenas without rewriting the benchmark store.</p>
+          </article>
+          <article class="tile accent-green">
+            <h3>Paper provider</h3>
+            <p>Turns reproducible paper export packages into discoverable ecosystem resources.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="band" id="install">
+      <div class="wrap">
+        <h2 class="section-title">Install</h2>
+        <pre class="code"><code>python -m pip install nirs4all-providers
+nirs4all-providers-release-gate --help</code></pre>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">nirs4all-providers is part of the NIRS4ALL V1 ecosystem. Package logic stays in the owning provider projects; this package defines the adapter contracts.</div>
+  </footer>
+</body>
+</html>
