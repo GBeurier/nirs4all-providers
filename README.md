@@ -168,7 +168,7 @@ Release publication also runs the version-sync guard:
 ```bash
 nirs4all-providers-version-sync
 # explicit release/tag check
-nirs4all-providers-version-sync --expected-tag v0.2.5 --json
+nirs4all-providers-version-sync --expected-tag v0.2.6 --json
 ```
 
 The canonical version is `src/nirs4all_providers/__init__.py::__version__`; the expected release tag

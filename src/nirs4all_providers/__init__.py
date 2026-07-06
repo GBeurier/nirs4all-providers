@@ -26,7 +26,7 @@ from .datasets import DatasetPackageCapability, DatasetProvider
 from .registry import available_providers, get_provider, provider_capabilities, provider_health, provider_ids
 from .repository import PipelineProvider
 
-__version__ = "0.2.5"
+__version__ = "0.2.6"
 
 __all__ = [
     "CONTRACT_SCHEMA_IDS",
