@@ -9,15 +9,11 @@ from nirs4all_providers import Capabilities, Health, WriteAccess, release_gate
 _ALL_BACKINGS = (
     "nirs4all_datasets",
     "nirs4all_repository",
-    "nirs4all_benchmarks",
-    "nirs4all_papers",
 )
 
 _FAKE_BACKINGS = {
     "nirs4all_datasets": {"__version__": "1", "list": lambda root, **f: []},
     "nirs4all_repository": {"__version__": "1"},
-    "nirs4all_benchmarks": {"__version__": "1"},
-    "nirs4all_papers": {"__version__": "1"},
 }
 
 
@@ -27,7 +23,7 @@ def test_release_gate_passes_with_importable_backings_and_no_execution_claim() -
 
     assert report.ok is True
     assert report.diagnostics == ()
-    assert {row.provider_id for row in report.rows} == {"datasets", "repository", "benchmarks", "papers"}
+    assert {row.provider_id for row in report.rows} == {"datasets", "repository"}
     assert all(row.capabilities.executes is False for row in report.rows)
 
 
@@ -40,12 +36,8 @@ def test_release_gate_fails_missing_backings_with_clear_install_diagnostics() ->
     messages = "\n".join(diagnostic.message + "\n" + diagnostic.mitigation for diagnostic in report.diagnostics)
     assert "nirs4all_datasets" in messages
     assert "nirs4all_repository" in messages
-    assert "nirs4all_benchmarks" in messages
-    assert "nirs4all_papers" in messages
     assert "nirs4all-providers[datasets]" in messages
     assert "nirs4all-providers[repository]" in messages
-    assert "nirs4all-providers[benchmarks]" in messages
-    assert "nirs4all-providers[papers]" in messages
 
 
 def test_release_gate_rejects_execution_capability_claim(monkeypatch) -> None:
@@ -76,8 +68,8 @@ def test_release_gate_main_json_returns_nonzero_for_missing_backings(capsys) -> 
     assert exit_code == 2
     payload = json.loads(capsys.readouterr().out)
     assert payload["ok"] is False
-    assert payload["boundary"] == "providers-serve-plan-export-metadata-only"
-    assert len(payload["diagnostics"]) == 4
+    assert payload["boundary"] == "providers-serve-datasets-repository-only"
+    assert len(payload["diagnostics"]) == 2
 
 
 def test_release_gate_text_report_names_boundary() -> None:
@@ -85,5 +77,5 @@ def test_release_gate_text_report_names_boundary() -> None:
         text = release_gate.render_text(release_gate.build_report())
 
     assert "providers release gate: PASS" in text
-    assert "serve, plan, or export metadata" in text
+    assert "serve datasets/repository metadata" in text
     assert "executes=False" in text

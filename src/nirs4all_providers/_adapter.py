@@ -1,9 +1,9 @@
 """Shared scaffolding for provider adapters: soft-import wiring, ``version()`` and ``health()``.
 
-Concrete adapters (datasets / repository / benchmarks / papers) subclass :class:`_BaseProvider`, set the
-three class variables, add their read methods, and override ``capabilities()`` (and optionally
-``_reachable()``). The base keeps the soft-import/availability logic in one place so each adapter stays
-a few lines of pure delegation — no provider business logic ever lives here.
+Concrete adapters (datasets / repository) subclass :class:`_BaseProvider`, set the three class
+variables, add their read methods, and override ``capabilities()`` (and optionally ``_reachable()``).
+The base keeps the soft-import/availability logic in one place so each adapter stays a few lines of
+pure delegation — no provider business logic ever lives here.
 """
 from __future__ import annotations
 

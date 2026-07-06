@@ -3,8 +3,7 @@ message: "If you use this software, please cite it using the metadata below."
 title: "nirs4all-providers"
 abstract: >-
   A dependency-light, soft-importing provider client layer over the optional
-  nirs4all ecosystem repositories for datasets, pipelines, benchmarks, and
-  papers export support.
+  nirs4all ecosystem repositories for datasets and pipelines.
 type: software
 authors:
   - family-names: Beurier
@@ -23,5 +22,4 @@ keywords:
   - providers
   - datasets
   - pipelines
-  - benchmarks
   - reproducibility

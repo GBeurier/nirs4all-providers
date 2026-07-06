@@ -54,4 +54,4 @@ def test_provider_capability_unavailable_message_names_capability_and_extra() ->
 
 def test_provider_unavailable_is_runtime_error() -> None:
     with pytest.raises(RuntimeError):
-        raise ProviderUnavailable("papers", extra="papers", module="nirs4all_papers")
+        raise ProviderUnavailable("datasets", extra="datasets", module="nirs4all_datasets")

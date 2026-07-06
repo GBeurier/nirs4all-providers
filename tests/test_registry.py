@@ -17,13 +17,11 @@ from nirs4all_providers import (
 _ALL_BACKINGS = (
     "nirs4all_datasets",
     "nirs4all_repository",
-    "nirs4all_benchmarks",
-    "nirs4all_papers",
 )
 
 
-def test_provider_ids_are_the_four_boundaries() -> None:
-    assert provider_ids() == ("datasets", "repository", "benchmarks", "papers")
+def test_provider_ids_are_the_two_public_boundaries() -> None:
+    assert provider_ids() == ("datasets", "repository")
 
 
 def test_get_provider_unknown_id_raises_value_error() -> None:
@@ -47,7 +45,7 @@ def test_all_absent_degrades_gracefully() -> None:
 
 def test_only_installed_extra_is_listed() -> None:
     fake = {"nirs4all_datasets": {"__version__": "7.7.7", "list": lambda root, **f: []}}
-    with hidden_modules("nirs4all_repository", "nirs4all_benchmarks", "nirs4all_papers"), fake_modules(fake):
+    with hidden_modules("nirs4all_repository"), fake_modules(fake):
         assert available_providers() == ["datasets"]
         provider = get_provider("datasets")
         assert provider.provider_id == "datasets"
@@ -58,7 +56,7 @@ def test_only_installed_extra_is_listed() -> None:
 
 
 def test_get_provider_forwards_config(tmp_path: object) -> None:
-    with fake_modules({"nirs4all_benchmarks": {"__version__": "0.1.0"}}):
-        provider = get_provider("benchmarks", store_root=str(tmp_path))
-        assert provider.provider_id == "benchmarks"
+    with fake_modules({"nirs4all_repository": {"__version__": "0.1.0"}}):
+        provider = get_provider("repository", root=str(tmp_path))
+        assert provider.provider_id == "repository"
         assert provider.version() == "0.1.0"

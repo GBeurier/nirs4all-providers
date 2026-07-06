@@ -26,7 +26,7 @@ mirrored into this repo. It is intentionally not hand-authored here.
 
 | field | value | rationale |
 |---|---|---|
-| color | `#D946EF` (RGB `217, 70, 239`) | Distinct from the existing data/repository/papers colors and visually readable as a connector/read-layer surface. |
+| color | `#D946EF` (RGB `217, 70, 239`) | Distinct from the existing ecosystem package colors and visually readable as a connector/read-layer surface. |
 | lettermark | `n4v` | The spec assigns `n4<first-letter>`, but providers' initial `p` is already taken by `nirs4all-papers` (`n4p`). `v` is the first free in-word letter (pro**v**iders), so the mark is unambiguous. |
 
 Constant accents follow the ecosystem rule: `n` is black `#000000` (white on

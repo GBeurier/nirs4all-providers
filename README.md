@@ -1,19 +1,21 @@
 # nirs4all-providers
 
 A **dependency-light, soft-importing client layer** over the nirs4all ecosystem's optional
-data / pipeline / benchmark repositories, plus a papers export-plugin facade.
+dataset catalogue and pipeline repository.
 
 This package owns **no** NIRS, ML, IO, or parsing logic. Each adapter is a thin, uniform client over
 one sibling repo's real public API, exposed behind a single `ProviderPlugin` contract and discovered
 through soft-import. When a backing extra is not installed, the provider degrades to
 `health().available == False` instead of failing at import time. Providers are **not** controllers and
-never execute ML or write back to the ecosystem. Papers is treated as a potential local export plugin
-over methods/provenance/UI helpers, not as a write-side repository.
+never execute ML or write back to the ecosystem.
 
-> Scope: **read slice.** Publish/upload and the benchmark runner stay deferred and gated (LOCK-RT /
-> DEC-PROV-001). `to_dataset_package` is present only as a *soft, transparent* bridge to nirs4all-io,
+> Scope: **read slice.** Publish/upload, benchmark arenas, and paper export/publishing stay outside this
+> package. `to_dataset_package` is present only as a *soft, transparent* bridge to nirs4all-io,
 > forwarding to the io entrypoint verbatim and returning a typed availability/refusal when the optional
-> io bridge is absent or too old. See `IMP_L14` / `SW6_PROV_PLUGINS_spec`.
+> io bridge is absent or too old.
+>
+> `nirs4all-benchmarks` and `nirs4all-papers` remain in their owning repositories. They are not provider
+> facets, extras, conformance targets, or release-gate siblings of this package.
 
 ## Install
 
@@ -26,10 +28,8 @@ cd nirs4all-providers
 python -m pip install .              # base: contracts + registry only (pure stdlib)
 python -m pip install ".[datasets]"  # + nirs4all-datasets
 python -m pip install ".[repository]" # + nirs4all-repository
-python -m pip install ".[benchmarks]" # + nirs4all-benchmarks
-python -m pip install ".[papers]"    # + nirs4all-papers
 python -m pip install ".[io]"        # + optional nirs4all-io package bridge
-python -m pip install ".[all]"       # all five optional backings
+python -m pip install ".[all]"       # datasets + repository + io
 ```
 
 Each backing is **optional** and soft-imported; install only what you consume. The base install
@@ -42,7 +42,7 @@ owned by backing projects stay explicit, for example `nirs4all-datasets[nirs4all
 ```python
 import nirs4all_providers as providers
 
-providers.provider_ids()        # ('datasets', 'repository', 'benchmarks', 'papers')
+providers.provider_ids()        # ('datasets', 'repository')
 providers.available_providers() # the subset whose extra is installed
 
 # Health never raises, even when the extra is absent:
@@ -58,28 +58,23 @@ datasets.retrieve_dataset("some_id")         # -> retrieval status dict; local c
 sd = datasets.to_spectro_dataset("some_id")  # -> nirs4all SpectroDataset (needs nirs4all-datasets[nirs4all])
 ```
 
-## The four providers (read surface)
+## The two providers (read surface)
 
 | Provider | `provider_id` | Backing | Read methods | Writes |
 |---|---|---|---|---|
 | `DatasetProvider` | `datasets` | `nirs4all-datasets` | `list_datasets` · `card` · `get_dataset` · `retrieve_dataset` · `to_spectro_dataset` · `to_dataset_package` · `describe_dataset_package` | local cache (via `get()` / `retrieve()`) |
 | `PipelineProvider` | `repository` | `nirs4all-repository` | `get_pipeline_list` · `list_pipelines` · `card` · `get_pipeline` · `get_bundle` · `verify` | none |
-| `BenchmarkProvider` | `benchmarks` | `nirs4all-benchmarks` | `get_pipeline_list` · `list_pipelines` · `get_pipeline` · `leaderboard` · `get_results` · `planned` · `queue_pipeline_test` | local Arena store (`planned_runs`) |
-| `PaperExportProvider` | `papers` | `nirs4all-papers` | `inspect_bundle` · `load_paper` · `load_paper_bundle` · `build_methods_section` · `build_repro_page` · `export_sidecars` | local export output only (marker-guarded) |
 
 Every adapter also exposes the contract trio: `provider_id`, `version()`, `health()`, `capabilities()`.
 
 Lookup methods validate their identifiers before delegating. Use dataset ids with `DatasetProvider`
 methods, repository pipeline ids from `PipelineProvider.get_pipeline_list()` rows with repository
-`get_pipeline()`, and benchmark `pipeline_dag_hash` values from `BenchmarkProvider.get_pipeline_list()`
-with benchmark `get_pipeline()`. `list_pipelines()` remains as a compatibility alias for both
-pipeline-serving providers. Benchmark by-hash lookup uses the local Arena store read API when available,
-so it does not require listing the whole pipeline catalogue first.
+`get_pipeline()`. `list_pipelines()` remains as a repository compatibility alias.
 
-Benchmark local planning stays write-disconnected from the ecosystem: `queue_pipeline_test(payload,
-target_datasets=[...])` delegates to `nirs4all_benchmarks.ingestion.upload`, which can register a
-pipeline recipe and write local `planned_runs` rows in the Arena store, but it does not execute the
-pipeline or publish anything back to repository, datasets, or papers.
+Benchmarks are consumed through `nirs4all-benchmarks` itself, where Arena stores, score ledgers, and
+planning/runner workflows belong. Paper bundles and reproducibility sidecars are consumed through
+`nirs4all-papers` itself. This package deliberately exposes no shims, fallbacks, or public provider ids
+for either domain.
 
 ## Contract
 
@@ -90,8 +85,7 @@ pipeline or publish anything back to repository, datasets, or papers.
 - **`Capabilities`** — `{serves, executes, writes, portability}`. Provider-level and **distinct from**
   the operator-level `ControllerCapability` (LOCK-CAP); the `portability` field only *references*
   CAP-002/CAP-004 for served artifacts.
-- **`WriteAccess`** — `none` / `local-cache` / `local-store` / `local-output` / `gated`. The read slice never reaches
-  `gated`; `local-output` is export output, not repository publish support.
+- **`WriteAccess`** — `none` / `local-cache` / `gated`. The read slice never reaches `gated`.
 
 ## Neutral contracts (multi-language)
 
@@ -184,9 +178,9 @@ contexts or `NIRS4ALL_PROVIDERS_EXPECTED_TAG` must match exactly.
 This gate is intentionally stricter than the hermetic unit suite. It fails when a registered backing
 extra is absent and reports the exact install hint, so a release environment cannot get a false green
 from skipped sibling conformance. It also fails if any provider advertises execution through
-`Capabilities.executes` or an execution-like served method. The only allowed boundary is
-serve / plan / export metadata; runtime execution and reproducibility proof stay with runtime-python,
-cluster, and the parity gates.
+`Capabilities.executes` or an execution-like served method. The only allowed boundary is serving
+dataset/repository metadata and config; runtime execution, benchmark proof, and paper export stay with
+their owning packages.
 
 For a local nirs4all workspace, use the sibling harness:
 
@@ -198,9 +192,9 @@ nirs4all-providers-local-release-gate --workspace-root /path/to/nirs4all
 python -m nirs4all_providers.local_release_gate --workspace-root /path/to/nirs4all --dependency-path /path/to/.venv
 ```
 
-The harness verifies that `nirs4all-datasets`, `nirs4all-repository`, `nirs4all-benchmarks`, and
-`nirs4all-papers` each expose a real `src/<module>/__init__.py`, prepends those source paths, then runs
-the same strict release gate. Existing dependency paths may be supplied with repeated `--dependency-path`
+The harness verifies that `nirs4all-datasets` and `nirs4all-repository` each expose a real
+`src/<module>/__init__.py`, prepends those source paths, then runs the same strict release gate.
+Existing dependency paths may be supplied with repeated `--dependency-path`
 flags or `NIRS4ALL_PROVIDERS_LOCAL_DEPENDENCY_PATHS` (using the platform path separator); venv roots are
 resolved to their `site-packages` directories. It does not install dependencies or fake missing packages;
 missing sibling trees, non-package layouts, or import-time dependency blockers remain release-gate

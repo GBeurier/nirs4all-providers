@@ -2,8 +2,7 @@
 
 Every provider adapter wraps exactly one ecosystem distribution that is an *optional extra* of
 ``nirs4all-providers``. When the extra is not installed, the adapter must degrade to
-``health().available == False`` rather than explode at import time — the same graceful-degradation
-pattern the sibling repos already use (e.g. ``nirs4all-benchmarks`` soft-imports ``nirs4all-datasets``).
+``health().available == False`` rather than explode at import time.
 """
 from __future__ import annotations
 

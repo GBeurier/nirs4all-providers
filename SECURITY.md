@@ -3,8 +3,7 @@
 ## Scope
 
 `nirs4all-providers` is a soft-importing client layer over optional sibling
-packages such as `nirs4all-datasets`, `nirs4all-repository`,
-`nirs4all-benchmarks`, and `nirs4all-papers`.
+packages `nirs4all-datasets` and `nirs4all-repository`.
 
 Security-relevant properties:
 
@@ -17,8 +16,8 @@ Security-relevant properties:
 - **Optional extras stay isolated.** Missing sibling packages degrade to typed
   unavailability instead of import-time crashes.
 
-Issues in backing packages should also be reported to the affected repository if
-the defect lives outside this adapter layer.
+Issues in backing packages, benchmarks, or papers should also be reported to the
+affected repository if the defect lives outside this adapter layer.
 
 ## Reporting a vulnerability
 

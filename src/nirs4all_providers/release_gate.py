@@ -1,9 +1,9 @@
 """Release gate for the provider read-slice boundary.
 
-The provider package can serve, plan, and export metadata. It cannot claim
-runtime execution, numerical parity, or reproducible execution proof. This gate
-checks that boundary explicitly and also makes missing optional sibling extras a
-hard diagnostic instead of a green skip.
+The provider package can serve dataset metadata and repository pipeline config.
+It cannot claim runtime execution, numerical parity, benchmark planning, or
+paper export. This gate checks that boundary explicitly and also makes missing
+optional sibling extras a hard diagnostic instead of a green skip.
 """
 from __future__ import annotations
 
@@ -28,38 +28,20 @@ __all__ = [
 _BACKING_MODULES = {
     "datasets": "nirs4all_datasets",
     "repository": "nirs4all_repository",
-    "benchmarks": "nirs4all_benchmarks",
-    "papers": "nirs4all_papers",
 }
 
 _EXECUTION_VERBS = frozenset({"execute", "evaluate", "fit", "predict", "replay", "run", "score", "train"})
 _NON_EXECUTION_SURFACES = frozenset(
     {
-        "build_methods_section",
-        "build_repro_page",
         "card",
-        "citation",
-        "datasets",
         "describe_dataset_package",
-        "export_sidecars",
         "get_bundle",
         "get_dataset",
         "get_pipeline",
         "get_pipeline_list",
-        "get_results",
-        "inspect_bundle",
-        "leaderboard",
         "list_datasets",
-        "list_papers",
         "list_pipelines",
-        "load_paper",
-        "load_paper_bundle",
-        "operators",
-        "overview",
-        "planned",
-        "queue_pipeline_test",
         "recipe",
-        "residuals",
         "retrieve_dataset",
         "to_dataset_package",
         "to_spectro_dataset",
@@ -123,7 +105,7 @@ class ProviderReleaseGateReport:
     def as_dict(self) -> dict[str, Any]:
         return {
             "ok": self.ok,
-            "boundary": "providers-serve-plan-export-metadata-only",
+            "boundary": "providers-serve-datasets-repository-only",
             "rows": [row.as_dict() for row in self.rows],
             "diagnostics": [diagnostic.as_dict() for diagnostic in self.diagnostics],
         }
@@ -172,8 +154,8 @@ def build_report() -> ProviderReleaseGateReport:
                     code="execution_claim",
                     message="Capabilities.executes is True; providers cannot claim runtime execution.",
                     mitigation=(
-                        "Move execution to runtime-python/cluster and expose provider output as metadata, "
-                        "planning rows, export files, or an unsupported diagnostic."
+                        "Move execution to runtime-python/cluster and expose provider output as served "
+                        "metadata/config or an unsupported diagnostic."
                     ),
                 )
             )
@@ -186,8 +168,8 @@ def build_report() -> ProviderReleaseGateReport:
                     code="execution_surface",
                     message=f"serves includes execution-like method(s): {', '.join(execution_like)}.",
                     mitigation=(
-                        "Provider surfaces may serve, plan, or export metadata only. Rename or move runtime "
-                        "execution operations to a runtime/cluster provider."
+                        "Provider surfaces may serve dataset metadata or repository config only. Rename or "
+                        "move runtime execution operations to a runtime/cluster provider."
                     ),
                 )
             )
@@ -199,7 +181,7 @@ def render_text(report: ProviderReleaseGateReport) -> str:
     """Render a compact human-readable gate report."""
     status = "PASS" if report.ok else "FAIL"
     lines = [f"NIRS4ALL providers release gate: {status}"]
-    lines.append("Boundary: providers may serve, plan, or export metadata; they may not execute.")
+    lines.append("Boundary: providers may serve datasets/repository metadata only; they may not execute.")
     lines.append("")
     for row in report.rows:
         caps = row.capabilities

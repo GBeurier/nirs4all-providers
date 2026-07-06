@@ -15,9 +15,7 @@ from typing import Any
 
 from ._softimport import ProviderUnavailable, soft_import
 from .base import Capabilities, Health, ProviderPlugin
-from .benchmarks import BenchmarkProvider
 from .datasets import DatasetProvider
-from .papers import PaperExportProvider
 from .repository import PipelineProvider
 
 __all__ = ["available_providers", "get_provider", "provider_capabilities", "provider_health", "provider_ids"]
@@ -38,8 +36,6 @@ _REGISTRY: dict[str, _Spec] = {
     for spec in (
         _Spec("datasets", "nirs4all_datasets", "datasets", DatasetProvider),
         _Spec("repository", "nirs4all_repository", "repository", PipelineProvider),
-        _Spec("benchmarks", "nirs4all_benchmarks", "benchmarks", BenchmarkProvider),
-        _Spec("papers", "nirs4all_papers", "papers", PaperExportProvider),
     )
 }
 

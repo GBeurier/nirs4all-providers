@@ -13,7 +13,7 @@
       "minimum": 1
     },
     "provider_id": {
-      "$comment": "Stable provider identifier. The four read-slice providers are datasets|repository|benchmarks|papers; other language surfaces may register additional ids.",
+      "$comment": "Stable provider identifier. The public provider facets are datasets|repository; benchmarks and papers remain in their owning repositories.",
       "type": "string"
     },
     "version": {
@@ -43,7 +43,7 @@
       "required": ["serves", "executes", "writes"],
       "properties": {
         "serves": {
-          "$comment": "Read/serve/plan/export method names the client exposes. Names are advisory documentation, not a closed vocabulary.",
+          "$comment": "Read/serve method names the client exposes. Names are advisory documentation, not a closed vocabulary.",
           "type": "array",
           "items": { "type": "string" }
         },
@@ -52,9 +52,9 @@
           "type": "boolean"
         },
         "writes": {
-          "$comment": "Write policy. The read slice reaches at most local-cache/local-store/local-output. `gated` is reserved for a future admin/governance-gated remote write and is never emitted by the read slice.",
+          "$comment": "Write policy. The read slice reaches at most local-cache. `gated` is reserved for a future admin/governance-gated remote write and is never emitted by the read slice.",
           "type": "string",
-          "enum": ["none", "local-cache", "local-store", "local-output", "gated"]
+          "enum": ["none", "local-cache", "gated"]
         },
         "portability": {
           "$comment": "Free-text reference to the CAP-002/CAP-004 portability level of served artifacts. References the capability vocabulary; never forks it.",

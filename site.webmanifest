@@ -1,7 +1,7 @@
 {
   "name": "nirs4all-providers",
   "short_name": "Providers",
-  "description": "Provider adapters for nirs4all datasets, repositories, benchmarks, and papers.",
+  "description": "Provider adapters for nirs4all datasets and pipeline repositories.",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#f7fbf8",

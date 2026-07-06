@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>nirs4all-providers</title>
-  <meta name="description" content="Provider adapters for nirs4all datasets, repositories, benchmarks, and papers.">
+  <meta name="description" content="Provider adapters for nirs4all datasets and pipeline repositories.">
   <link rel="canonical" href="https://gbeurier.github.io/nirs4all-providers/">
   <link rel="icon" href="assets/brand/favicon.ico">
   <link rel="manifest" href="site.webmanifest">
@@ -286,7 +286,7 @@
       <div class="wrap hero-grid">
         <div>
           <h1>Provider contracts for NIRS workflows.</h1>
-          <p class="lead">A typed adapter layer that lets core tools discover datasets, pipeline repositories, benchmark arenas, and reproducible paper exports without taking ownership of those projects.</p>
+          <p class="lead">A typed adapter layer that lets core tools discover datasets and pipeline repositories without taking ownership of those projects.</p>
           <div class="actions">
             <a class="button primary" href="https://github.com/GBeurier/nirs4all-providers">View source</a>
             <a class="button" href="#install">Source install</a>
@@ -297,8 +297,6 @@
           <div class="flow">
             <div><strong>datasets</strong><span>Expose catalog cards and loadable references from nirs4all-datasets and nirs4all-io.</span></div>
             <div><strong>repository</strong><span>Expose versioned pipeline descriptors without fitting or mutating results.</span></div>
-            <div><strong>benchmarks</strong><span>Expose arena metadata, score ledgers, and reproducible comparison inputs.</span></div>
-            <div><strong>papers</strong><span>Expose export descriptors for reproducible paper artifacts.</span></div>
           </div>
         </aside>
       </div>
@@ -306,7 +304,7 @@
 
     <section class="band" id="contracts">
       <div class="wrap">
-        <h2 class="section-title">Four provider surfaces</h2>
+        <h2 class="section-title">Two provider surfaces</h2>
         <div class="grid">
           <article class="tile accent-green">
             <h3>Dataset provider</h3>
@@ -316,15 +314,8 @@
             <h3>Pipeline provider</h3>
             <p>Lists and resolves reusable pipeline descriptors for core, Web, R, and other language bindings.</p>
           </article>
-          <article class="tile accent-amber">
-            <h3>Benchmark provider</h3>
-            <p>Connects validated run exports to benchmark arenas without rewriting the benchmark store.</p>
-          </article>
-          <article class="tile accent-green">
-            <h3>Paper provider</h3>
-            <p>Turns reproducible paper export packages into discoverable ecosystem resources.</p>
-          </article>
         </div>
+        <p class="lead">Benchmark arenas and paper reproducibility exports stay in <code>nirs4all-benchmarks</code> and <code>nirs4all-papers</code>; this package does not expose provider shims for them.</p>
       </div>
     </section>
 

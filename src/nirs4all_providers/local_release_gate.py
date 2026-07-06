@@ -1,8 +1,9 @@
 """Local-workspace harness for the strict providers release gate.
 
 This module does not fake optional backings. It only verifies that the expected
-sibling source trees are real Python packages, prepends their ``src`` directories
-to ``sys.path``, then delegates to :mod:`nirs4all_providers.release_gate`.
+public sibling source trees are real Python packages, prepends their ``src``
+directories to ``sys.path``, then delegates to
+:mod:`nirs4all_providers.release_gate`.
 """
 from __future__ import annotations
 
@@ -47,8 +48,6 @@ class _Sibling:
 _SIBLINGS = (
     _Sibling("datasets", "nirs4all-datasets", "nirs4all_datasets"),
     _Sibling("repository", "nirs4all-repository", "nirs4all_repository"),
-    _Sibling("benchmarks", "nirs4all-benchmarks", "nirs4all_benchmarks"),
-    _Sibling("papers", "nirs4all-papers", "nirs4all_papers"),
 )
 
 
@@ -482,7 +481,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         "--workspace-root",
         help=(
             "workspace containing nirs4all-datasets, nirs4all-repository, "
-            "nirs4all-benchmarks, and nirs4all-papers"
+            "and any explicit dependency paths needed by those packages"
         ),
     )
     parser.add_argument(

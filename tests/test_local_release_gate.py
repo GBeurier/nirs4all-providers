@@ -11,15 +11,11 @@ from nirs4all_providers import local_release_gate
 _BACKING_MODULES = (
     "nirs4all_datasets",
     "nirs4all_repository",
-    "nirs4all_benchmarks",
-    "nirs4all_papers",
 )
 
 _SIBLING_PACKAGES = {
     "nirs4all-datasets": ("nirs4all_datasets", "__version__ = '1'\n\ndef list(root, **filters):\n    return []\n"),
     "nirs4all-repository": ("nirs4all_repository", "__version__ = '1'\n"),
-    "nirs4all-benchmarks": ("nirs4all_benchmarks", "__version__ = '1'\n"),
-    "nirs4all-papers": ("nirs4all_papers", "__version__ = '1'\n"),
 }
 
 
@@ -65,13 +61,13 @@ def test_local_release_gate_adds_verified_source_paths_and_runs_strict_gate(tmp_
     assert report.diagnostics == ()
     assert report.release_report is not None
     assert report.release_report.ok is True
-    assert {row.provider_id for row in report.rows} == {"datasets", "repository", "benchmarks", "papers"}
+    assert {row.provider_id for row in report.rows} == {"datasets", "repository"}
     assert all(row.package for row in report.rows)
 
 
 def test_local_release_gate_fails_before_strict_gate_when_sibling_is_not_package(tmp_path: Path) -> None:
     _write_sibling_packages(tmp_path)
-    (tmp_path / "nirs4all-papers" / "src" / "nirs4all_papers" / "__init__.py").unlink()
+    (tmp_path / "nirs4all-repository" / "src" / "nirs4all_repository" / "__init__.py").unlink()
 
     with _isolated_import_state():
         report = local_release_gate.build_local_report(workspace_root=tmp_path)
@@ -79,7 +75,7 @@ def test_local_release_gate_fails_before_strict_gate_when_sibling_is_not_package
     assert report.ok is False
     assert report.release_report is None
     assert [(diagnostic.provider_id, diagnostic.code) for diagnostic in report.diagnostics] == [
-        ("papers", "not_package")
+        ("repository", "not_package")
     ]
 
 

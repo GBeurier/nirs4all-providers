@@ -22,7 +22,7 @@ from nirs4all_providers.contracts import (
     provider_descriptor,
 )
 
-_ALL_BACKINGS = ("nirs4all_datasets", "nirs4all_repository", "nirs4all_benchmarks", "nirs4all_papers")
+_ALL_BACKINGS = ("nirs4all_datasets", "nirs4all_repository")
 
 _FIXTURE_TO_SCHEMA = {
     "provider_descriptor.example": "provider_descriptor.v1",

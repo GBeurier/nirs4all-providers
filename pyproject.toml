@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "nirs4all-providers"
 # Version is single-sourced from src/nirs4all_providers/__init__.py (__version__).
 dynamic = ["version"]
-description = "Dependency-light, soft-importing provider clients over the nirs4all ecosystem's optional data/pipeline/benchmark/paper repositories."
+description = "Dependency-light, soft-importing provider clients over the nirs4all ecosystem's optional dataset and pipeline repositories."
 authors = [
     { name = "Gregory Beurier", email = "beurier@cirad.fr" },
 ]
@@ -16,7 +16,7 @@ maintainers = [
 readme = "README.md"
 license = "CeCILL-2.1 OR AGPL-3.0-or-later"
 license-files = ["LICENSE", "LICENSES/*.txt"]
-keywords = ["nirs4all", "providers", "plugins", "datasets", "repository", "benchmarks", "papers"]
+keywords = ["nirs4all", "providers", "datasets", "repository"]
 classifiers = [
     "Development Status :: 2 - Pre-Alpha",
     "Intended Audience :: Science/Research",
@@ -39,19 +39,15 @@ dependencies = []
 # Backing repos. Each is soft-imported; install only what you consume.
 datasets = ["nirs4all-datasets>=0.3.4"]
 repository = ["nirs4all-repository>=0.1.6"]
-benchmarks = ["nirs4all-benchmarks>=0.1.4"]
-papers = ["nirs4all-papers>=0.2.3"]
 # Optional bridge backing for the soft `DatasetProvider.to_dataset_package` pass-through. Soft-imported
 # like every other extra; absent => the bridge raises a clear ProviderUnavailable, never an ImportError.
 io = ["nirs4all-io>=0.1.6"]
-# Everything at once. This installs the provider backings only. Bridge extras owned by those
+# Everything at once. This installs the public provider backings only. Bridge extras owned by those
 # backings remain explicit, for example `nirs4all-datasets[nirs4all]` when callers need
 # `DatasetProvider.to_spectro_dataset()`. This package never imports nirs4all itself and must not pin it.
 all = [
     "nirs4all-datasets>=0.3.4",
     "nirs4all-repository>=0.1.6",
-    "nirs4all-benchmarks>=0.1.4",
-    "nirs4all-papers>=0.2.3",
     "nirs4all-io>=0.1.6",
 ]
 dev = [

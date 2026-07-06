@@ -7,12 +7,12 @@ Two layers:
   match the adapters, and ``provider_health`` must report the right shape whether a backing is faked-in
   or hidden. No backing package is needed.
 
-* **Real-API conformance** — grounded in the *actual* ``nirs4all-datasets`` / ``-repository`` /
-  ``-benchmarks`` / ``-papers`` public APIs. Each is guarded by ``pytest.importorskip``: where the
-  matching extra is installed it asserts the backing still exposes exactly the callables and keyword
-  parameters the adapter delegates to (so an upstream rename breaks *here*, loudly, instead of at a
-  user's call site); where the extra is absent the test **skips** rather than fails. In an environment
-  with none of the four extras installed, all four skip — that is an environment limit, not a defect.
+* **Real-API conformance** — grounded in the *actual* ``nirs4all-datasets`` / ``-repository`` public
+  APIs. Each is guarded by ``pytest.importorskip``: where the matching extra is installed it asserts the
+  backing still exposes exactly the callables and keyword parameters the adapter delegates to (so an
+  upstream rename breaks *here*, loudly, instead of at a user's call site); where the extra is absent the
+  test **skips** rather than fails. In an environment with neither extra installed, both skip — that is
+  an environment limit, not a defect.
 """
 from __future__ import annotations
 
@@ -22,11 +22,9 @@ import pytest
 
 from conftest import fake_modules, hidden_modules
 from nirs4all_providers import (
-    BenchmarkProvider,
     Capabilities,
     DatasetProvider,
     Health,
-    PaperExportProvider,
     PipelineProvider,
     ProviderPlugin,
     provider_health,
@@ -36,16 +34,12 @@ from nirs4all_providers import (
 _ADAPTERS = {
     "datasets": DatasetProvider,
     "repository": PipelineProvider,
-    "benchmarks": BenchmarkProvider,
-    "papers": PaperExportProvider,
 }
 
 # Minimal fakes: just enough for the availability/reachability probes to run without a real backing.
 _FAKE_BACKINGS = {
     "nirs4all_datasets": {"__version__": "1", "list": lambda root, **f: []},
     "nirs4all_repository": {"__version__": "1"},
-    "nirs4all_benchmarks": {"__version__": "1"},
-    "nirs4all_papers": {"__version__": "1"},
 }
 
 
@@ -139,72 +133,3 @@ def test_conformance_repository_real_api() -> None:
         assert kw in list_params, f"nirs4all_repository.list lost filter {kw!r}"
     for method in ("recipe", "verify", "to_nirs4all"):
         assert callable(getattr(mod.Pipeline, method, None)), f"Pipeline.{method} missing"
-
-
-def test_conformance_benchmarks_real_api() -> None:
-    pytest.importorskip("nirs4all_benchmarks")
-    from nirs4all_benchmarks.ingestion import upload
-    from nirs4all_benchmarks.store.arena_store import ArenaStore
-    from nirs4all_benchmarks.store.queries import Queries
-
-    assert "root" in inspect.signature(ArenaStore.__init__).parameters
-    assert callable(getattr(ArenaStore, "query_one", None)), "ArenaStore.query_one missing"
-    assert callable(upload), "nirs4all_benchmarks.ingestion.upload missing"
-    upload_params = inspect.signature(upload).parameters
-    for kw in ("collection_id", "target_datasets", "as_release", "filename"):
-        assert kw in upload_params, f"nirs4all_benchmarks.ingestion.upload lost keyword {kw!r}"
-    for name in (
-        "overview",
-        "datasets",
-        "operators",
-        "pipelines",
-        "leaderboard",
-        "run_detail",
-        "residuals",
-        "planned",
-    ):
-        assert callable(getattr(Queries, name, None)), f"Queries.{name} missing"
-    assert "partition" in inspect.signature(Queries.residuals).parameters
-    leaderboard_params = inspect.signature(Queries.leaderboard).parameters
-    assert "metric" in leaderboard_params and "scope" in leaderboard_params
-
-
-def test_conformance_papers_real_api() -> None:
-    pytest.importorskip("nirs4all_papers")
-    from nirs4all_papers.bibliography import build_bibliography
-    from nirs4all_papers.bundle import read_bundle
-    from nirs4all_papers.model import load_catalog, load_paper
-    from nirs4all_papers.provenance import citation_cff, paper_bibtex
-    from nirs4all_papers.provider import (
-        bibtex,
-        build_methods_section,
-        build_repro_page,
-        citation,
-        export_sidecars,
-        inspect_bundle,
-        list_papers,
-        load_paper_bundle,
-        provider_capabilities,
-    )
-    from nirs4all_papers.provider import (
-        load_paper as provider_load_paper,
-    )
-    from nirs4all_papers.site import build_site
-
-    for fn in (
-        provider_capabilities,
-        list_papers,
-        load_paper_bundle,
-        provider_load_paper,
-        inspect_bundle,
-        build_methods_section,
-        citation,
-        bibtex,
-        build_repro_page,
-        export_sidecars,
-    ):
-        assert callable(fn)
-    for fn in (read_bundle, load_paper, load_catalog, build_bibliography, citation_cff, paper_bibtex, build_site):
-        assert callable(fn)
-    assert "io_wasm" in inspect.signature(build_repro_page).parameters
-    assert "io_wasm" in inspect.signature(build_site).parameters
