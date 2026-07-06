@@ -38,21 +38,21 @@ dependencies = []
 [project.optional-dependencies]
 # Backing repos. Each is soft-imported; install only what you consume.
 datasets = ["nirs4all-datasets>=0.3.4"]
-repository = ["nirs4all-repository>=0.1.4"]
-benchmarks = ["nirs4all-benchmarks>=0.1.2"]
-papers = ["nirs4all-papers>=0.2.1"]
+repository = ["nirs4all-repository>=0.1.6"]
+benchmarks = ["nirs4all-benchmarks>=0.1.4"]
+papers = ["nirs4all-papers>=0.2.3"]
 # Optional bridge backing for the soft `DatasetProvider.to_dataset_package` pass-through. Soft-imported
 # like every other extra; absent => the bridge raises a clear ProviderUnavailable, never an ImportError.
-io = ["nirs4all-io>=0.1.5"]
+io = ["nirs4all-io>=0.1.6"]
 # Everything at once. This installs the provider backings only. Bridge extras owned by those
 # backings remain explicit, for example `nirs4all-datasets[nirs4all]` when callers need
 # `DatasetProvider.to_spectro_dataset()`. This package never imports nirs4all itself and must not pin it.
 all = [
     "nirs4all-datasets>=0.3.4",
-    "nirs4all-repository>=0.1.4",
-    "nirs4all-benchmarks>=0.1.2",
-    "nirs4all-papers>=0.2.1",
-    "nirs4all-io>=0.1.5",
+    "nirs4all-repository>=0.1.6",
+    "nirs4all-benchmarks>=0.1.4",
+    "nirs4all-papers>=0.2.3",
+    "nirs4all-io>=0.1.6",
 ]
 dev = [
     "pytest>=7.4.0",
