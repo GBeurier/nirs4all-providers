@@ -106,7 +106,7 @@ class DatasetProvider(_BaseProvider):
         return result
 
     def to_spectro_dataset(self, dataset_id: str, **opts: Any) -> Any:
-        """Return a nirs4all ``SpectroDataset`` via ``NirsDataset.to_nirs4all`` (needs the nirs4all extra)."""
+        """Return a nirs4all ``SpectroDataset`` via the backing ``nirs4all-datasets[nirs4all]`` bridge."""
         return self.get_dataset(dataset_id, **opts).to_nirs4all()
 
     def dataset_package_capability(self) -> DatasetPackageCapability:

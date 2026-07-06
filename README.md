@@ -33,7 +33,9 @@ python -m pip install ".[all]"       # all five optional backings
 ```
 
 Each backing is **optional** and soft-imported; install only what you consume. The base install
-depends on nothing but the standard library.
+depends on nothing but the standard library. `.[all]` installs the provider backings; bridge extras
+owned by backing projects stay explicit, for example `nirs4all-datasets[nirs4all]` for
+`DatasetProvider.to_spectro_dataset()`.
 
 ## Use
 
@@ -45,7 +47,7 @@ providers.available_providers() # the subset whose extra is installed
 
 # Health never raises, even when the extra is absent:
 providers.provider_health("datasets")
-# Health(provider_id='datasets', available=True, reachable=True, version='0.3.2', detail=None)
+# Health(provider_id='datasets', available=True, reachable=True, version='0.3.4', detail=None)
 
 # Get a typed adapter (raises ProviderUnavailable with a clear pip hint if the extra is missing):
 datasets = providers.get_provider("datasets", root="/path/to/catalogue")
@@ -53,7 +55,7 @@ datasets.list_datasets(tier="public")        # -> list[card-dict]
 datasets.card("some_id")                     # -> card dict | None
 ds = datasets.get_dataset("some_id")         # -> NirsDataset (needs nirs4all-datasets)
 datasets.retrieve_dataset("some_id")         # -> retrieval status dict; local cache only
-sd = datasets.to_spectro_dataset("some_id")  # -> nirs4all SpectroDataset (needs the nirs4all extra)
+sd = datasets.to_spectro_dataset("some_id")  # -> nirs4all SpectroDataset (needs nirs4all-datasets[nirs4all])
 ```
 
 ## The four providers (read surface)

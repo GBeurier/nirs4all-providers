@@ -44,9 +44,9 @@ papers = ["nirs4all-papers>=0.2.1"]
 # Optional bridge backing for the soft `DatasetProvider.to_dataset_package` pass-through. Soft-imported
 # like every other extra; absent => the bridge raises a clear ProviderUnavailable, never an ImportError.
 io = ["nirs4all-io>=0.1.5"]
-# Everything at once. NOTE: nirs4all-repository pins nirs4all >=0.10,<0.11 — the tightest in the
-# family — so an `[all]` install co-resolves the providers' nirs4all pins to that window.
-# This package never imports nirs4all itself and must not pin it.
+# Everything at once. This installs the provider backings only. Bridge extras owned by those
+# backings remain explicit, for example `nirs4all-datasets[nirs4all]` when callers need
+# `DatasetProvider.to_spectro_dataset()`. This package never imports nirs4all itself and must not pin it.
 all = [
     "nirs4all-datasets>=0.3.4",
     "nirs4all-repository>=0.1.4",
