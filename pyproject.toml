@@ -37,8 +37,8 @@ dependencies = []
 
 [project.optional-dependencies]
 # Backing repos. Each is soft-imported; install only what you consume.
-datasets = ["nirs4all-datasets>=0.3.2"]
-repository = ["nirs4all-repository>=0.1.2"]
+datasets = ["nirs4all-datasets>=0.3.4"]
+repository = ["nirs4all-repository>=0.1.4"]
 benchmarks = ["nirs4all-benchmarks>=0.1.2"]
 papers = ["nirs4all-papers>=0.2.1"]
 # Optional bridge backing for the soft `DatasetProvider.to_dataset_package` pass-through. Soft-imported
@@ -48,8 +48,8 @@ io = ["nirs4all-io>=0.1.5"]
 # family — so an `[all]` install co-resolves the providers' nirs4all pins to that window.
 # This package never imports nirs4all itself and must not pin it.
 all = [
-    "nirs4all-datasets>=0.3.2",
-    "nirs4all-repository>=0.1.2",
+    "nirs4all-datasets>=0.3.4",
+    "nirs4all-repository>=0.1.4",
     "nirs4all-benchmarks>=0.1.2",
     "nirs4all-papers>=0.2.1",
     "nirs4all-io>=0.1.5",
