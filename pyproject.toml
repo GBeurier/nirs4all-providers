@@ -69,6 +69,7 @@ Issues = "https://github.com/GBeurier/nirs4all-providers/issues"
 [project.scripts]
 nirs4all-providers-release-gate = "nirs4all_providers.release_gate:main"
 nirs4all-providers-local-release-gate = "nirs4all_providers.local_release_gate:main"
+nirs4all-providers-version-sync = "nirs4all_providers.version_sync:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

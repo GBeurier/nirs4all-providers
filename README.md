@@ -155,7 +155,7 @@ only when the ecosystem checkout lives somewhere else.
 ## Develop
 
 ```bash
-python scripts/ci_gate.py  # ruff + mypy + hermetic tests + conformance + neutral contracts
+python scripts/ci_gate.py  # version-sync + ruff + mypy + tests + conformance + neutral contracts
 ruff check .       # lint
 mypy src           # types
 pytest -q          # tests (hermetic: fakes, no network, no real backing required)
@@ -168,6 +168,18 @@ nirs4all-providers-release-gate
 # or
 python -m nirs4all_providers.release_gate --json
 ```
+
+Release publication also runs the version-sync guard:
+
+```bash
+nirs4all-providers-version-sync
+# explicit release/tag check
+nirs4all-providers-version-sync --expected-tag v0.2.4 --json
+```
+
+The canonical version is `src/nirs4all_providers/__init__.py::__version__`; the expected release tag
+is `v{__version__}`. Branch CI and local non-release runs pass without a tag, while GitHub release/tag
+contexts or `NIRS4ALL_PROVIDERS_EXPECTED_TAG` must match exactly.
 
 This gate is intentionally stricter than the hermetic unit suite. It fails when a registered backing
 extra is absent and reports the exact install hint, so a release environment cannot get a false green

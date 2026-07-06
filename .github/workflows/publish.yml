@@ -81,16 +81,7 @@ jobs:
 
       - name: Verify release tag matches package version
         if: github.event_name == 'release'
-        run: |
-          python - <<'PY'
-          import os
-          import nirs4all_providers
-
-          tag = os.environ["GITHUB_REF_NAME"]
-          expected = f"v{nirs4all_providers.__version__}"
-          if tag != expected:
-              raise SystemExit(f"release tag {tag!r} does not match package version {expected!r}")
-          PY
+        run: python -m nirs4all_providers.version_sync --json
 
       - name: Run providers CI/release gate
         env:
