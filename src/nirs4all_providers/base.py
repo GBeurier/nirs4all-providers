@@ -1,6 +1,6 @@
 """Provider contracts: the structural :class:`ProviderPlugin` protocol and its typed value objects.
 
-These types are the *only* stable surface a consumer (nirs4all core, the Studio backend, lite, or the
+These types are the *only* stable surface a consumer (nirs4all-core, the Studio backend, or the
 CLI) needs in order to talk to any provider adapter. They are deliberately dependency-light — pure
 stdlib — so importing this module never drags an optional provider package in.
 
