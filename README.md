@@ -9,6 +9,12 @@ through soft-import. When a backing extra is not installed, the provider degrade
 `health().available == False` instead of failing at import time. Providers are **not** controllers and
 never execute ML or write back to the ecosystem.
 
+This is not a second full Python implementation of `nirs4all`. The runtime
+packages published as `nirs4all` in Rust, JavaScript/WASM, R, and
+MATLAB/Octave should keep consuming `nirs4all-core` / `nirs4all-methods` for
+portable logic, and use these neutral provider contracts only when they need
+dataset or repository read access.
+
 > Scope: **read slice.** Publish/upload, benchmark arenas, and paper export/publishing stay outside this
 > package. `to_dataset_package` is present only as a *soft, transparent* bridge to nirs4all-io,
 > forwarding to the io entrypoint verbatim and returning a typed availability/refusal when the optional
@@ -95,6 +101,11 @@ artifacts** (a catalogue index, identity cards, per-file SHA-256 fetch manifests
 served over HTTPS/DOI and integrity-verified. None of that requires Python, so R / JS-WASM / Rust clients
 reach the same data by **porting the schemas + a thin fetcher**, never by depending on this package.
 
+Those non-Python clients are expected to plug the fetched descriptors into
+their own target-language `nirs4all` packages and `nirs4all-methods` bindings.
+The architecture is: provider contracts travel across languages; runtime logic
+still lives in core/methods, not in a Python shim exported from here.
+
 The five schemas are frozen in the ecosystem repo (`nirs4all-ecosystem/docs/contracts/providers/`) and
 mirrored **byte-identically** here under [`src/nirs4all_providers/contracts/`](./src/nirs4all_providers/contracts):
 
@@ -141,6 +152,9 @@ only when the ecosystem checkout lives somewhere else.
 - **Not a dependency of `nirs4all-core` / `dag-ml` / `nirs4all-io`.** Consumers depend on
   the *contract* (the schemas / served artifacts) and may optionally use this Python client; the arrow
   never points into those packages from here.
+- The target-language packages named `nirs4all` consume `nirs4all-core` and
+  `nirs4all-methods`; they do not consume this package as a runtime substitute
+  or duplicate its read-client glue in the wrong layer.
 - No adapter re-implements `nirs4all` / `nirs4all-io` / `nirs4all-methods`. `nirs4all-io` remains the
   dataset-assembly owner; package methods delegate to nirs4all-io and do not assemble packages here.
 - No network calls originate in this layer, and no ecosystem write-back is performed.

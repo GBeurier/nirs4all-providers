@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "nirs4all-providers"
 # Version is single-sourced from src/nirs4all_providers/__init__.py (__version__).
 dynamic = ["version"]
-description = "Dependency-light, soft-importing provider clients over the nirs4all ecosystem's optional dataset and pipeline repositories."
+description = "Dependency-light Python soft-import provider clients for optional dataset and pipeline repositories; not a second nirs4all runtime."
 authors = [
     { name = "Gregory Beurier", email = "beurier@cirad.fr" },
 ]
