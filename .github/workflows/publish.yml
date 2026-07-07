@@ -24,7 +24,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: GBeurier/nirs4all-ecosystem
-          ref: rc/v1-full-refactor
+          ref: main
           path: nirs4all-ecosystem
 
       - name: Check out provider backings
