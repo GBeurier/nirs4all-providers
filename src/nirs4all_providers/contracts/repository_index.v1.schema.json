@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/GBeurier/nirs4all-ecosystem/schemas/providers/repository_index.v1.schema.json",
   "title": "nirs4all Repository Catalogue Index v1",
-  "$comment": "The DISCOVERY + FETCHER contract for nirs4all-repository (catalog/index.json, schema_version 1). This static JSON index is served over HTTPS (default https://repository.nirs4all.org) or shipped in the wheel; a language client lists/filters pipelines from `pipelines` and fetches each pipeline's descriptor + recipe by URL, verifying sha256. This is the neutral form behind PipelineProvider.get_pipeline_list()/list_pipelines(). No Python is required to browse or fetch; bridging a recipe to a runnable object (to_nirs4all/to_dagml) is a separate, language-specific concern.",
+  "$comment": "The DISCOVERY + FETCHER contract for nirs4all-repository (catalog/index.json, schema_version 1). This static JSON index is served over HTTPS (default https://repository.nirs4all.org) or shipped in the wheel; a language client lists/filters pipelines from `pipelines` and fetches each pipeline's descriptor + recipe by URL, verifying sha256. This is the neutral form behind PipelineProvider.get_pipeline_list(). No Python is required to browse or fetch; bridging a recipe to a runnable object (to_nirs4all/to_dagml) is a separate, language-specific concern.",
   "type": "object",
   "additionalProperties": true,
   "required": ["schema_version", "repository", "repository_version", "pipelines"],

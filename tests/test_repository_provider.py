@@ -55,7 +55,6 @@ def test_capabilities() -> None:
         caps = PipelineProvider().capabilities()
     assert caps.serves == (
         "get_pipeline_list",
-        "list_pipelines",
         "card",
         "get_pipeline",
         "recipe",
@@ -80,7 +79,6 @@ def test_get_pipeline_list_and_card_forward_filters() -> None:
         assert provider.get_pipeline_list(framework="nirs4all") == [
             {"root": "/repo", "filters": {"framework": "nirs4all"}}
         ]
-        assert provider.list_pipelines(framework="dag-ml") == [{"root": "/repo", "filters": {"framework": "dag-ml"}}]
         assert provider.card("p1") == {"name": "p1", "root": "/repo"}
 
 
@@ -124,4 +122,4 @@ def test_unavailable_backing_degrades() -> None:
         assert provider.version() == "unavailable"
         assert provider.health().available is False
         with pytest.raises(ProviderUnavailable):
-            provider.list_pipelines()
+            provider.get_pipeline_list()

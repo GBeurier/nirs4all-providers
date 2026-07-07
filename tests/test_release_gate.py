@@ -47,7 +47,7 @@ def test_release_gate_rejects_execution_capability_claim(monkeypatch) -> None:
         release_gate,
         "provider_capabilities",
         lambda provider_id: Capabilities(
-            serves=("list_pipelines", "execute_pipeline"),
+            serves=("get_pipeline_list", "execute_pipeline"),
             executes=True,
             writes=WriteAccess.NONE,
         ),

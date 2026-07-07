@@ -40,7 +40,6 @@ _NON_EXECUTION_SURFACES = frozenset(
         "get_pipeline",
         "get_pipeline_list",
         "list_datasets",
-        "list_pipelines",
         "recipe",
         "retrieve_dataset",
         "to_dataset_package",

@@ -78,13 +78,13 @@ sd = datasets.to_spectro_dataset("some_id")  # -> nirs4all SpectroDataset (needs
 | Provider | `provider_id` | Backing | Read methods | Writes |
 |---|---|---|---|---|
 | `DatasetProvider` | `datasets` | `nirs4all-datasets` | `list_datasets` · `card` · `get_dataset` · `retrieve_dataset` · `to_spectro_dataset` · `to_dataset_package` · `describe_dataset_package` | local cache (via `get()` / `retrieve()`) |
-| `PipelineProvider` | `repository` | `nirs4all-repository` | `get_pipeline_list` · `list_pipelines` · `card` · `get_pipeline` · `get_bundle` · `verify` | none |
+| `PipelineProvider` | `repository` | `nirs4all-repository` | `get_pipeline_list` · `card` · `get_pipeline` · `get_bundle` · `verify` | none |
 
 Every adapter also exposes the contract trio: `provider_id`, `version()`, `health()`, `capabilities()`.
 
 Lookup methods validate their identifiers before delegating. Use dataset ids with `DatasetProvider`
 methods, repository pipeline ids from `PipelineProvider.get_pipeline_list()` rows with repository
-`get_pipeline()`. `list_pipelines()` remains as a repository compatibility alias.
+`get_pipeline()`.
 
 Benchmarks are consumed through `nirs4all-benchmarks` itself, where Arena stores, score ledgers, and
 planning/runner workflows belong. Paper bundles and reproducibility sidecars are consumed through
@@ -191,7 +191,7 @@ Release publication also runs the version-sync guard:
 ```bash
 nirs4all-providers-version-sync
 # explicit release/tag check
-nirs4all-providers-version-sync --expected-tag v0.2.6 --json
+nirs4all-providers-version-sync --expected-tag v0.2.8 --json
 ```
 
 The canonical version is `src/nirs4all_providers/__init__.py::__version__`; the expected release tag
