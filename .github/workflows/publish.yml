@@ -16,6 +16,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    if: github.event_name != 'release' || github.event.release.prerelease == false
     steps:
       - uses: actions/checkout@v4
 
@@ -66,7 +67,7 @@ jobs:
             "nirs4all-io>=0.1.5"
 
       - name: Verify release tag matches package version
-        if: github.event_name == 'release'
+        if: github.event_name == 'release' && github.event.release.prerelease == false
         run: python -m nirs4all_providers.version_sync --json
 
       - name: Run providers CI/release gate
@@ -92,7 +93,7 @@ jobs:
   publish:
     needs: build
     runs-on: ubuntu-latest
-    if: github.event_name == 'release' || inputs.dry_run == 'false'
+    if: (github.event_name == 'release' && github.event.release.prerelease == false) || inputs.dry_run == 'false'
     environment:
       name: pypi
       url: https://pypi.org/p/nirs4all-providers
