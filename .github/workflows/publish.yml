@@ -93,7 +93,9 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     if: github.event_name == 'release' || inputs.dry_run == 'false'
-    environment: pypi
+    environment:
+      name: pypi
+      url: https://pypi.org/p/nirs4all-providers
     permissions:
       id-token: write
     steps:
@@ -101,4 +103,20 @@ jobs:
         with:
           name: dist
           path: dist/
+      - name: Validate Trusted Publisher release tuple
+        run: |
+          set -euo pipefail
+          expected_repo="GBeurier/nirs4all-providers"
+          if [[ "${GITHUB_REPOSITORY}" != "${expected_repo}" ]]; then
+            echo "::error::PyPI Trusted Publisher for project nirs4all-providers must target owner=GBeurier repo=nirs4all-providers workflow=publish.yml environment=pypi; current repository is ${GITHUB_REPOSITORY}." >&2
+            exit 1
+          fi
+          case "${GITHUB_WORKFLOW_REF}" in
+            */.github/workflows/publish.yml@*)
+              ;;
+            *)
+              echo "::error::Expected GITHUB_WORKFLOW_REF to point at .github/workflows/publish.yml, got ${GITHUB_WORKFLOW_REF}." >&2
+              exit 1
+              ;;
+          esac
       - uses: pypa/gh-action-pypi-publish@release/v1
