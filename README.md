@@ -25,8 +25,17 @@ dataset or repository read access.
 
 ## Install
 
-PyPI publishing for `nirs4all-providers` is still pending. Until the package is published,
-install from a source checkout:
+Install the published provider client package from PyPI:
+
+```bash
+python -m pip install nirs4all-providers                # base: contracts + registry only (pure stdlib)
+python -m pip install "nirs4all-providers[datasets]"   # + nirs4all-datasets
+python -m pip install "nirs4all-providers[repository]" # + nirs4all-repository
+python -m pip install "nirs4all-providers[io]"         # + optional nirs4all-io package bridge
+python -m pip install "nirs4all-providers[all]"        # datasets + repository + io
+```
+
+For local development from a source checkout:
 
 ```bash
 git clone https://github.com/GBeurier/nirs4all-providers.git
