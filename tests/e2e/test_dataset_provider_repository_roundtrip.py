@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import os
 import sys
 from pathlib import Path
@@ -39,6 +40,59 @@ def _sha256_json(payload: Any) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+def _deterministic_noise(row: int, col: int) -> float:
+    state = ((row + 1) * 73856093) ^ ((col + 1) * 19349663)
+    state &= 0xFFFFFFFF
+    state = (1664525 * state + 1013904223) & 0xFFFFFFFF
+    return state / 4294967295 - 0.5
+
+
+def _execution_dataset(rows: int = 40, cols: int = 28) -> dict[str, Any]:
+    x: list[list[float]] = []
+    y: list[float] = []
+    for row_index in range(rows):
+        phase = row_index / 5
+        row: list[float] = []
+        target = 0.0
+        for col_index in range(cols):
+            wavelength = 900 + col_index * 8
+            value = (
+                0.6 * math.sin(phase + col_index / 7)
+                + 0.25 * math.cos(row_index / 6 - col_index / 11)
+                + 0.002 * wavelength
+                + ((row_index % 4) - 1.5) * 0.03
+                + 0.12 * _deterministic_noise(row_index, col_index)
+                + 0.03 * math.sin(((row_index + 1) * (col_index + 2)) / 13)
+            )
+            row.append(value)
+            target += (
+                value * (0.04 if col_index < cols / 2 else -0.025)
+                + 0.01 * _deterministic_noise(col_index, row_index)
+            )
+        x.append(row)
+        y.append(target + 0.2 * math.sin(row_index / 3) + row_index * 0.015)
+    return {
+        "kind": "provider_materialized_csv_nirs_matrix",
+        "X": x,
+        "y": y,
+        "rows": rows,
+        "cols": cols,
+        "target_name": "target",
+        "feature_prefix": "wavelength_",
+        "sample_ids": [f"s{index + 1:03d}" for index in range(rows)],
+    }
+
+
+def _write_execution_dataset_csv(path: Path, dataset: dict[str, Any]) -> None:
+    wavelengths = [900 + col_index * 8 for col_index in range(int(dataset["cols"]))]
+    header = ["sample_id", *(f"wavelength_{wavelength}" for wavelength in wavelengths), "target"]
+    rows = [",".join(header)]
+    for sample_id, values, target in zip(dataset["sample_ids"], dataset["X"], dataset["y"], strict=True):
+        cells = [sample_id, *(f"{float(value):.12g}" for value in values), f"{float(target):.12g}"]
+        rows.append(",".join(cells))
+    path.write_text("\n".join(rows) + "\n", encoding="utf-8")
+
+
 def test_dataset_provider_repository_roundtrip(artifacts_dir: Path) -> None:
     datasets_root = WORKSPACE_ROOT / "nirs4all-datasets"
     repository_root = WORKSPACE_ROOT / "nirs4all-repository"
@@ -62,15 +116,9 @@ def test_dataset_provider_repository_roundtrip(artifacts_dir: Path) -> None:
     dataset_card = dataset_provider.card(selected_dataset["id"])
     assert dataset_card is not None
 
-    csv_path = artifacts_dir / "roundtrip-mini-dataset.csv"
-    csv_path.write_text(
-        "sample_id,wavelength_1100,wavelength_1200,wavelength_1300,target\n"
-        "s1,0.10,0.21,0.33,1.0\n"
-        "s2,0.12,0.24,0.31,1.1\n"
-        "s3,0.18,0.27,0.36,1.4\n"
-        "s4,0.20,0.30,0.39,1.6\n",
-        encoding="utf-8",
-    )
+    execution_dataset = _execution_dataset()
+    csv_path = artifacts_dir / "roundtrip-provider-execution-dataset.csv"
+    _write_execution_dataset_csv(csv_path, execution_dataset)
     package_summary = dataset_provider.describe_dataset_package(csv_path, name="provider-roundtrip")
     assert isinstance(package_summary, dict)
     assert package_summary["schema_version"] >= 2
@@ -112,6 +160,10 @@ def test_dataset_provider_repository_roundtrip(artifacts_dir: Path) -> None:
             "card_identity": dataset_card.get("identity", {}),
             "io_package_summary": package_summary,
             "io_package_summary_sha256": _sha256_json(package_summary),
+            "execution_dataset": execution_dataset,
+            "execution_dataset_sha256": _sha256_json(execution_dataset),
+            "execution_dataset_csv": str(csv_path),
+            "execution_dataset_csv_sha256": hashlib.sha256(csv_path.read_bytes()).hexdigest(),
         },
         "repository": {
             "catalog_count": len(repository_index["pipelines"]),
