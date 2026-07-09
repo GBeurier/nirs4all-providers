@@ -62,7 +62,7 @@ providers.available_providers() # the subset whose extra is installed
 
 # Health never raises, even when the extra is absent:
 providers.provider_health("datasets")
-# Health(provider_id='datasets', available=True, reachable=True, version='0.3.4', detail=None)
+# Health(provider_id='datasets', available=True, reachable=True, version='0.3.5', detail=None)
 
 # Get a typed adapter (raises ProviderUnavailable with a clear pip hint if the extra is missing):
 datasets = providers.get_provider("datasets", root="/path/to/catalogue")

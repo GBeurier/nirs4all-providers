@@ -37,8 +37,8 @@ dependencies = []
 
 [project.optional-dependencies]
 # Backing repos. Each is soft-imported; install only what you consume.
-datasets = ["nirs4all-datasets>=0.3.4"]
-repository = ["nirs4all-repository>=0.1.6"]
+datasets = ["nirs4all-datasets>=0.3.5"]
+repository = ["nirs4all-repository>=0.1.10"]
 # Optional bridge backing for the soft `DatasetProvider.to_dataset_package` pass-through. Soft-imported
 # like every other extra; absent => the bridge raises a clear ProviderUnavailable, never an ImportError.
 io = ["nirs4all-io>=0.1.6"]
@@ -46,8 +46,8 @@ io = ["nirs4all-io>=0.1.6"]
 # backings remain explicit, for example `nirs4all-datasets[nirs4all]` when callers need
 # `DatasetProvider.to_spectro_dataset()`. This package never imports nirs4all itself and must not pin it.
 all = [
-    "nirs4all-datasets>=0.3.4",
-    "nirs4all-repository>=0.1.6",
+    "nirs4all-datasets>=0.3.5",
+    "nirs4all-repository>=0.1.10",
     "nirs4all-io>=0.1.6",
 ]
 dev = [
