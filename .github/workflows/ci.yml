@@ -18,38 +18,38 @@ jobs:
 
     steps:
       - name: Check out
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Check out canonical ecosystem contracts
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: GBeurier/nirs4all-ecosystem
           ref: main
           path: nirs4all-ecosystem
 
       - name: Check out dataset backing
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: GBeurier/nirs4all-datasets
           ref: main
           path: nirs4all-datasets
 
       - name: Check out IO backing
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: GBeurier/nirs4all-io
           ref: main
           path: nirs4all-io
 
       - name: Check out repository backing
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: GBeurier/nirs4all-repository
           ref: main
           path: nirs4all-repository
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
           cache: pip
