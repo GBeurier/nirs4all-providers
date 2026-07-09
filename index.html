@@ -321,11 +321,12 @@
 
     <section class="band" id="install">
       <div class="wrap">
-        <h2 class="section-title">Source install</h2>
-        <p>PyPI publishing is pending; install from this source checkout for now.</p>
-        <pre class="code"><code>git clone https://github.com/GBeurier/nirs4all-providers.git
-cd nirs4all-providers
-python -m pip install .
+        <h2 class="section-title">Install</h2>
+        <p>The provider client is published on PyPI. Install the base contracts only, or add the optional read-side bridges you need.</p>
+        <pre class="code"><code>python -m pip install nirs4all-providers
+python -m pip install "nirs4all-providers[datasets]"
+python -m pip install "nirs4all-providers[repository]"
+python -m pip install "nirs4all-providers[io]"
 nirs4all-providers-release-gate --help</code></pre>
       </div>
     </section>
