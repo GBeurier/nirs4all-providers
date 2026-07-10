@@ -64,7 +64,7 @@ jobs:
           python -m pip install \
             -e ./nirs4all-datasets \
             -e ./nirs4all-repository \
-            "nirs4all-io>=0.1.5"
+            "nirs4all-io>=0.1.6"
 
       - name: Verify release tag matches package version
         if: github.event_name == 'release' && github.event.release.prerelease == false
