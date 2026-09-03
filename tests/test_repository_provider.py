@@ -8,10 +8,19 @@ from nirs4all_providers import PipelineProvider, ProviderUnavailable, WriteAcces
 
 
 class _FakePipeline:
-    def __init__(self, name: str, verify_arg: bool, record: list[tuple[object, ...]]) -> None:
+    def __init__(
+        self,
+        name: str,
+        verify_arg: bool,
+        record: list[tuple[object, ...]],
+        *,
+        root: object = None,
+        with_artifacts: bool = False,
+    ) -> None:
         self.name = name
         self.verify_arg = verify_arg
         self._record = record
+        self.path = {"bundle": name, "with_artifacts": with_artifacts, "root": root}
 
     def verify(self) -> None:
         self._record.append(("verify", self.name))
@@ -22,9 +31,17 @@ class _FakePipeline:
 
 
 def _fake(record: list[tuple[object, ...]]) -> dict[str, dict[str, object]]:
-    def _get(name: str, *, root: object = None, cache_dir: object = None, verify: bool = True, **kw: object) -> object:
+    def _get(
+        name: str,
+        *,
+        root: object = None,
+        cache_dir: object = None,
+        verify: bool = True,
+        with_artifacts: bool = False,
+        **kw: object,
+    ) -> object:
         record.append(("get", name, verify))
-        return _FakePipeline(name, verify, record)
+        return _FakePipeline(name, verify, record, root=root, with_artifacts=with_artifacts)
 
     return {
         "nirs4all_repository": {
@@ -32,11 +49,9 @@ def _fake(record: list[tuple[object, ...]]) -> dict[str, dict[str, object]]:
             "list": lambda *, root=None, **filters: [{"root": root, "filters": filters}],
             "card": lambda name, *, root=None: {"name": name, "root": root},
             "get": _get,
-            "fetch": lambda name, *, root=None, cache_dir=None, verify=True, with_artifacts=False: {
-                "bundle": name,
-                "with_artifacts": with_artifacts,
-                "root": root,
-            },
+            # Mirrors the real package collision after importing its ``fetch``
+            # submodule: the package attribute is then a module, not a callable.
+            "fetch": object(),
         }
     }
 

@@ -72,15 +72,14 @@ class PipelineProvider(_BaseProvider):
         return self.get_pipeline(pipeline_id).recipe()
 
     def get_bundle(self, pipeline_id: str, *, with_artifacts: bool = False) -> Any:
-        """Materialise the bundle dir and return its path (delegates to ``nirs4all_repository.fetch``)."""
-        pipeline_id = self._require_identifier(pipeline_id, name="pipeline_id")
-        return self._require().fetch(
-            pipeline_id,
-            root=self._root,
-            cache_dir=self._cache_dir,
-            verify=self._verify,
-            with_artifacts=with_artifacts,
-        )
+        """Materialise the bundle dir and return its path through the resolved pipeline handle.
+
+        ``nirs4all_repository`` also contains a ``fetch`` submodule.  Importing that
+        submodule can replace the package-level ``fetch`` function attribute, so
+        resolving through the stable public ``get`` API avoids a Python package-name
+        collision while preserving the same materialisation and verification path.
+        """
+        return self.get_pipeline(pipeline_id, with_artifacts=with_artifacts).path
 
     def verify(self, pipeline_id: str) -> None:
         """Recompute and check every bundle SHA-256 (delegates to ``Pipeline.verify``)."""
