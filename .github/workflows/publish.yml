@@ -34,8 +34,8 @@ jobs:
       - uses: actions/checkout@v7
         with:
           repository: GBeurier/nirs4all-repository
-          # Candidate 0.1.11; replace with its immutable release tag commit once published.
-          ref: 337caa6773c60fed94a0dfebcaf471e3a470af96
+          # Candidate 0.1.12; Providers publication remains pending until this exact commit is released.
+          ref: b760d1a88150fcad71cd7dd11c765619f8b3983d
           path: nirs4all-repository
 
       - uses: actions/checkout@v7
