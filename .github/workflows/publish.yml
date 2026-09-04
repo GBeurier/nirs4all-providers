@@ -35,7 +35,7 @@ jobs:
         with:
           repository: GBeurier/nirs4all-repository
           # Candidate 0.1.12; Providers publication remains pending until this exact commit is released.
-          ref: a97283306610543e68a61b201e1f904f3c72ca1b
+          ref: dbd9dae1205e1905692decd9fc7243f4fbda3068
           path: nirs4all-repository
 
       - uses: actions/checkout@v7

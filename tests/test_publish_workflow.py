@@ -16,7 +16,7 @@ def test_release_backings_are_immutable_and_io_is_exact() -> None:
     for commit in (
         "5cfeeb10b73961d6be698b7f752d047bfd57300c",
         "007d7aafe50e6e4148d5a5cefe0ad96d9da37e7b",
-        "a97283306610543e68a61b201e1f904f3c72ca1b",
+        "dbd9dae1205e1905692decd9fc7243f4fbda3068",
         "3e5a05674dfab4bbcebf23fe9d615d231ca4d551",
         "df7f2198862c71a24aeeba08ba09ee118524b55d",
     ):
