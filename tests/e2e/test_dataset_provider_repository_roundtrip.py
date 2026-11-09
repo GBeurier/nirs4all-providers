@@ -12,15 +12,10 @@ PROVIDERS_ROOT = Path(__file__).resolve().parents[2]
 WORKSPACE_ROOT = Path(os.environ.get("N4A_WORKSPACE_ROOT", PROVIDERS_ROOT.parent)).resolve()
 PIPELINE_ID = "core_portable_snv_savgol_pls"
 
-for path in (
-    PROVIDERS_ROOT / "src",
-    WORKSPACE_ROOT / "nirs4all-datasets" / "src",
-    WORKSPACE_ROOT / "nirs4all-io" / "src",
-    WORKSPACE_ROOT / "nirs4all-repository" / "src",
-):
-    text = str(path)
-    if text not in sys.path:
-        sys.path.insert(0, text)
+# Owner src trees may contain parity oracles; use their installed public packages.
+providers_src = str(PROVIDERS_ROOT / "src")
+if providers_src not in sys.path:
+    sys.path.insert(0, providers_src)
 
 from nirs4all_providers import DatasetProvider, PipelineProvider  # noqa: E402
 from nirs4all_providers.contracts import (  # noqa: E402

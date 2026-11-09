@@ -28,26 +28,27 @@ jobs:
         uses: actions/checkout@v7
         with:
           repository: GBeurier/nirs4all-datasets
-          ref: 007d7aafe50e6e4148d5a5cefe0ad96d9da37e7b # v0.3.10
+          # v0.3.19 (tagged public release source)
+          ref: 57ccd12fddbfb767b3ff5941433af5980f175c96
           path: nirs4all-datasets
 
       - uses: actions/checkout@v7
         with:
           repository: GBeurier/nirs4all-repository
-          # Candidate 0.1.12; Providers publication remains pending until this exact commit is released.
-          ref: dbd9dae1205e1905692decd9fc7243f4fbda3068
+          # v0.1.14 (public)
+          ref: 2204ab18adac9648e27719f04c7c612983b57c6f
           path: nirs4all-repository
 
       - uses: actions/checkout@v7
         with:
           repository: GBeurier/nirs4all-formats
-          ref: 3e5a05674dfab4bbcebf23fe9d615d231ca4d551 # v0.2.9
+          ref: 819f5764a2138d755155e5018d7bbcb178924861 # v0.2.16
           path: nirs4all-formats
 
       - uses: actions/checkout@v7
         with:
           repository: GBeurier/nirs4all-io
-          ref: df7f2198862c71a24aeeba08ba09ee118524b55d # v0.1.14
+          ref: 28e47c9d6491b83a31dd36a25f2b0a35eeab9860 # v0.3.1
           path: nirs4all-io
 
       - uses: actions/setup-python@v6
@@ -59,10 +60,11 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -e ".[dev]"
-          python -m pip install \
-            -e ./nirs4all-datasets \
-            -e ./nirs4all-repository \
-            "nirs4all-io==0.1.14"
+          python -m pip install --only-binary=:all: \
+            "nirs4all-datasets==0.3.19" \
+            "nirs4all-repository==0.1.14" \
+            "nirs4all-io==0.3.1" \
+            "nirs4all-formats==0.2.16"
           python -m pip install "twine==7.0.0"
 
       - name: Verify release tag matches package version
@@ -74,8 +76,8 @@ jobs:
           N4A_WORKSPACE_ROOT: ${{ github.workspace }}
         run: python scripts/ci_gate.py
 
-      - name: Run local backing release gate
-        run: python -m nirs4all_providers.local_release_gate --workspace-root "$GITHUB_WORKSPACE" --json
+      - name: Run installed backing release gate
+        run: python -m nirs4all_providers.release_gate --json
 
       - name: Build sdist + wheel
         run: python -m build

@@ -15,13 +15,24 @@ def test_release_backings_are_immutable_and_io_is_exact() -> None:
     text = _workflow_text()
     for commit in (
         "5cfeeb10b73961d6be698b7f752d047bfd57300c",
-        "007d7aafe50e6e4148d5a5cefe0ad96d9da37e7b",
-        "dbd9dae1205e1905692decd9fc7243f4fbda3068",
-        "3e5a05674dfab4bbcebf23fe9d615d231ca4d551",
-        "df7f2198862c71a24aeeba08ba09ee118524b55d",
+        "57ccd12fddbfb767b3ff5941433af5980f175c96",
+        "2204ab18adac9648e27719f04c7c612983b57c6f",
+        "819f5764a2138d755155e5018d7bbcb178924861",
+        "28e47c9d6491b83a31dd36a25f2b0a35eeab9860",
     ):
         assert f"ref: {commit}" in text
-    assert '"nirs4all-io==0.1.14"' in text
+    for requirement in (
+        "nirs4all-datasets==0.3.19",
+        "nirs4all-repository==0.1.14",
+        "nirs4all-io==0.3.1",
+        "nirs4all-formats==0.2.16",
+    ):
+        assert f'"{requirement}"' in text
+    assert "python -m pip install --only-binary=:all:" in text
+    assert "-e ./nirs4all-datasets" not in text
+    assert "-e ./nirs4all-repository" not in text
+    assert "python -m nirs4all_providers.release_gate --json" in text
+    assert "nirs4all_providers.local_release_gate" not in text
     assert "ref: main" not in text
 
 
