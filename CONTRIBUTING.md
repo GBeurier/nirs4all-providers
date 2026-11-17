@@ -52,3 +52,16 @@ pytest -q
 
 Use GitHub issues for bug reports and feature requests. For security-sensitive
 reports, follow [`SECURITY.md`](SECURITY.md) instead of filing a public issue.
+
+## Cross-repository version constraints
+
+Backing packages from other nirs4all repositories are declared at **minor**
+granularity, never more precisely: `nirs4all-datasets>=0.3,<0.4`,
+`nirs4all-repository>=0.1,<0.2` and `nirs4all-io>=0.3,<0.4`. Exact versions
+live in lockfiles and in the release workflow's installed cohort
+(`.github/workflows/publish.yml`), which stays exact. In return an owner patch
+release changes no wire format, persisted schema, `.n4a` payload semantics,
+native ABI or shared fixture; such changes need at least a minor release. A
+patch release of this package keeps the neutral provider contracts and fixtures
+under `src/nirs4all_providers/contracts/` unchanged. The full policy is
+`docs/contracts/release/VERSION_CONSTRAINTS.md` in `nirs4all-ecosystem`.
