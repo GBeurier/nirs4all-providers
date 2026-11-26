@@ -15,17 +15,17 @@ def test_release_backings_are_immutable_and_io_is_exact() -> None:
     text = _workflow_text()
     for commit in (
         "5cfeeb10b73961d6be698b7f752d047bfd57300c",
-        "57ccd12fddbfb767b3ff5941433af5980f175c96",
+        "74bd2c6a21d344771efa0c23695216e667daba6b",
         "2204ab18adac9648e27719f04c7c612983b57c6f",
-        "819f5764a2138d755155e5018d7bbcb178924861",
-        "28e47c9d6491b83a31dd36a25f2b0a35eeab9860",
+        "89f191396772c71379e7ad788f29f30472369498",
+        "c1c3cdfa0e394ef696c56ac65bfabdef1b65a468",
     ):
         assert f"ref: {commit}" in text
     for requirement in (
-        "nirs4all-datasets==0.3.19",
+        "nirs4all-datasets==0.4.0",
         "nirs4all-repository==0.1.14",
-        "nirs4all-io==0.3.1",
-        "nirs4all-formats==0.2.16",
+        "nirs4all-io==0.4.0",
+        "nirs4all-formats==0.3.1",
     ):
         assert f'"{requirement}"' in text
     assert "python -m pip install --only-binary=:all:" in text

@@ -64,8 +64,8 @@ package keeps the neutral provider contracts and fixtures under
 `src/nirs4all_providers/contracts/` unchanged.
 
 Backing packages from other nirs4all repositories accept every patch of one
-tested minor series, `>=X.Y[.Z],<X.(Y+1)`: `nirs4all-datasets>=0.3,<0.4`,
-`nirs4all-repository>=0.1,<0.2` and `nirs4all-io>=0.3,<0.4`. A patch floor is
+tested minor series, `>=X.Y[.Z],<X.(Y+1)`: `nirs4all-datasets>=0.4,<0.5`,
+`nirs4all-repository>=0.1,<0.2` and `nirs4all-io>=0.4,<0.5`. A patch floor is
 allowed when a fix or feature from that patch is required; moving to a new
 minor series is an explicit, tested decision. Exact versions live in lockfiles
 and in the release workflow's installed cohort
